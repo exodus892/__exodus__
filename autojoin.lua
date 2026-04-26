@@ -109,7 +109,7 @@ local function PublishMessage(ChannelID, Content)
 end
 
 task.spawn(function ()
-    local interval = math.random(600, 1200)
+    local interval = 900
     local elapsed = 0
 
     while true do
