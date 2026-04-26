@@ -175,7 +175,7 @@ local function Scan(Tp, Json)
                                         HitsMessage = v
                                         break
                                     else
-                                        warn("That isnt a join button")
+                                        --warn("That isnt a join button")
                                     end
                                 end
                             end
