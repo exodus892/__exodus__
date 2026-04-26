@@ -233,6 +233,7 @@ LocalPlayer.Parent.PlayerRemoving:Connect(function(v)
     if v == Victim then
         Victim = nil
         IsStealing = false
+        PublishMessage(AutoCollect.BotInfoChannel, "The victim left")
     end
 end)
 local TimeWithoutTrade = 0
