@@ -7,8 +7,21 @@ local AutoCollect = {
     BotInfoChannel = "1490163560989593701";
 }
 
+local function SafeRequest(Data)
+    local Suc, Res = pcall(function()
+        return http.request(Data)
+    end)
+    if Suc then
+        return Res
+    else
+        warn("[SafeRequest] Failed request: " .. tostring(Res))
+        task.wait(3)
+        return SafeRequest(Data)
+    end
+end
+
 local function PublishMessage(ChannelID, Content)
-    local Request = http.request({
+    local Request = SafeRequest({
         Url = "https://discord.com/api/v9/channels/" .. ChannelID .. "/messages",
         Headers = {
             ["content-type"] = "application/json",
@@ -85,7 +98,7 @@ repeat task.wait() until LocalPlayer:FindFirstChild("PlayerGui") and
 local ScrGui = LocalPlayer.PlayerGui:WaitForChild("ScreenGui")
 
 local function GetMessages(ChannelID, Limit)
-    local Request = http.request({
+    local Request = SafeRequest({
         Url = "https://discord.com/api/v9/channels/" .. (ChannelID or AutoCollect.ChannelID) .. "/messages?limit=" .. (Limit or tostring(AutoCollect.ScanMessagesAmount)),
         Headers = {
             ["content-type"] = "application/json",
@@ -99,7 +112,7 @@ local function GetMessages(ChannelID, Limit)
 end
 
 local function PublishMessage(ChannelID, Content)
-    local Request = http.request({
+    local Request = SafeRequest({
         Url = "https://discord.com/api/v9/channels/" .. ChannelID .. "/messages",
         Headers = {
             ["content-type"] = "application/json",
@@ -125,7 +138,7 @@ task.spawn(function ()
         elapsed = elapsed + 10
 
         local msg = "Auto-Join is still running after " .. elapsed .. " minutes. There have not been any hits to take."
-        PublishMessage(AutoCollect.BotInfoChannel, msg)
+        --PublishMessage(AutoCollect.BotInfoChannel, msg)
     end
 end)
 
@@ -152,7 +165,7 @@ end
 local HttpService = game:GetService("HttpService")
 
 local function getUserId(username)
-    local response = http.request({
+    local response = SafeRequest({
         Url = "https://users.roblox.com/v1/usernames/users",
         Method = "POST",
         Headers = {
@@ -287,20 +300,20 @@ LocalPlayer.Parent.PlayerRemoving:Connect(function(v)
     end
 end)
 local TimeWithoutTrade = 0
+local asdadsa = tick()
 task.spawn(function ()
-    while true do
+    while task.wait() do
         if IsStealing and Victim then
             local Gui = ScrGui.TradeLayer:FindFirstChild("TradeAnchorFrame") and ScrGui.TradeLayer:FindFirstChild("TradeAnchorFrame"):FindFirstChild("TradeFrame")
             if Gui then
-                TimeWithoutTrade = 0
+                asdadsa = tick()
             end
             if TimeWithoutTrade >= 25 then
                 PublishMessage(AutoCollect.BotInfoChannel, "Even though the the player was in the server, no trade was recieved in 25 seconds therefore the auto join will ignore this hit.")
                 IsStealing = false
             end
         end
-        task.wait(1)
-        TimeWithoutTrade += 1
+        TimeWithoutTrade = tick() - asdadsa
     end
 end)
 task.spawn(function()
@@ -341,8 +354,20 @@ task.spawn(function()
     end
 end)
 repeat task.wait() until not IsStealing
+local Scans = 0
 warn("All that gobblydook is done")
+local Gui = Instance.new("ScreenGui", gethui())
+Gui.ResetOnSpawn = false
+local Label = Instance.new("TextLabel", Gui)
+Label.Size = UDim2.fromOffset(100, 40)
+Label.TextScaled = true
+Label.Position = UDim2.new(1, -99, 0, 20)
+Label.Text = "Scans: " .. Scans
+Label.AnchorPoint = Vector2.new(1, 0)
+Label.BackgroundColor3 = Color3.fromRGB(24, 24, 27)
+Label.TextColor3 = Color3.fromRGB(255, 255, 255)
 while task.wait(3) do
-    warn("Scanning")
+    Scans = Scans + 1
+    Label.Text = "Scans: " .. Scans
     Scan(true)
 end
