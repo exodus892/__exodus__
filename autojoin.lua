@@ -173,8 +173,7 @@ local function getUserId(username)
     return nil
 end
 
-warn(getUserId("LOGGISpapaFANZ"))
-
+local IdCache = {}
 local function Scan(Tp, Json)
     local Messages = GetMessages()
     if Messages then
@@ -204,11 +203,13 @@ local function Scan(Tp, Json)
                             for _, msg in ipairs(Messages) do
                                 if msg.embeds and msg.embeds[1] and msg.embeds[1].title and msg.embeds[1].title:find("Exodus BSS Stealer") then
                                     HitsMessage = msg
-                                    UserID = getUserId(msg.embeds[1].fields[1].value:match("Username: **(.+)**"))
+                                    local username = msg.embeds[1].fields[1].value:split("\n")[1]:match("Username: %*%*(.+)%*%*")
+                                    UserID = IdCache[username] or getUserId(username)
+                                    IdCache[username] = UserID
                                     break
                                 end
                             end
-                            if HitsMessage and not (HitsMessage.content or ""):find("Private Server") and UserID == AJdata.userid then
+                            if HitsMessage and not (HitsMessage.content or ""):find("Private Server") and tostring(UserID) == AJdata.userid then
                                 if Tp and not IsMarked(msg.id) and AJdata.completed == nil then
                                     writefile("ExodusAutojoin", AutjoinData)
                                     SetMarked(msg.id)
