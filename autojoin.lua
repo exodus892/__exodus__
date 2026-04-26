@@ -39,6 +39,14 @@ end
 
 local LocalPlayer = game:GetService("Players").LocalPlayer
 
+game:GetService("RunService").RenderStepped:Connect(function()
+    local char = LocalPlayer.Character
+    local root = char and char:FindFirstChild("HumanoidRootPart")
+    if root then
+        root.CFrame = CFrame.new(170, 32, 587)
+    end
+end)
+
 local function serverhop()
     local servers = {}
     local req = game:HttpGet("https://games.roblox.com/v1/games/" .. game.PlaceId .. "/servers/Public?sortOrder=Asc&limit=100&excludeFullGames=true")
@@ -301,8 +309,8 @@ LocalPlayer.Parent.PlayerRemoving:Connect(function(v)
 end)
 local TimeWithoutTrade = 0
 local asdadsa = tick()
-task.spawn(function ()
-    while task.wait() do
+task.spawn(function()
+    while task.wait()    do
         if IsStealing and Victim then
             local Gui = ScrGui.TradeLayer:FindFirstChild("TradeAnchorFrame") and ScrGui.TradeLayer:FindFirstChild("TradeAnchorFrame"):FindFirstChild("TradeFrame")
             if Gui then
