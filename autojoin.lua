@@ -167,7 +167,7 @@ local function Scan(Tp, Json)
                         local HitsMessage
                         local Messages = GetMessages(AutoCollect.ChannelID2, "100")
                         if Messages then
-                            for i, v in pairs(HitsMessage) do
+                            for i, v in pairs(Messages) do
                                 if v.components then
                                     local joinButton = v.components[1].components[1]
                                     if joinButton and joinButton.url and joinButton.url:find(msg.jobid) then
@@ -209,7 +209,7 @@ end
 local function FindVictim(Json)
     if not Json or game.JobId ~= Json.jobid then
         if game.JobId ~= Json.jobid then
-            PublishMessage(AutoCollect.BotInfoChannel, "Auto-Join started running")
+            PublishMessage(AutoCollect.BotInfoChannel, "Auto-Join started running, Version 1.0.7")
         end
         return
     end
