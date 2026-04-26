@@ -325,9 +325,11 @@ task.spawn(function()
                 task.wait(1)
             end
         else
-            task.spawn(function()
-                PublishMessage(AutoCollect.BotInfoChannel, "The victim wasnt in the server")
-            end)
+            if game.JobId == Json.jobid then
+                task.spawn(function()
+                    PublishMessage(AutoCollect.BotInfoChannel, "The victim wasnt in the server")
+                end)
+            end
             warn("No victim")
             IsStealing = false
         end
