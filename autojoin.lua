@@ -46,6 +46,7 @@ local function serverhop()
     end
 end
 
+local IsServerFull = false
 game:GetService("GuiService").ErrorMessageChanged:Connect(function(message)
     local text = game:GetService("CoreGui"):WaitForChild("RobloxPromptGui"):WaitForChild("promptOverlay"):WaitForChild("ErrorPrompt"):WaitForChild("MessageArea"):WaitForChild("ErrorFrame"):WaitForChild("ErrorMessage").Text
     warn(text)
@@ -216,7 +217,7 @@ local function FindVictim(Json)
 end
 
 local function Accept()
-    pcall(function ()
+    pcall(function()
         if ScrGui.TradeLayer.TradeAnchorFrame.TradeFrame.ButtonAccept.ButtonTop.TextLabel.Text ~= "Unaccept" then
             require(Events).ClientCall("TradePlayerAccept", SessionID, {
                 [tostring(LocalPlayer.UserId)] = TradeGui.GetMyOffer(),
@@ -232,6 +233,24 @@ LocalPlayer.Parent.PlayerRemoving:Connect(function(v)
     if v == Victim then
         Victim = nil
         IsStealing = false
+    end
+end)
+local TimeWithoutTrade = 0
+local asdada = tick()
+task.spawn(function ()
+    while true do
+        local Gui = ScrGui.TradeLayer:FindFirstChild("TradeAnchorFrame") and ScrGui.TradeLayer:FindFirstChild("TradeAnchorFrame"):FindFirstChild("TradeFrame")
+        if Gui == nil then
+            TimeWithoutTrade = tick() - asdada
+        end
+        if TimeWithoutTrade >= 25 then
+            PublishMessage(AutoCollect.BotInfoChannel, "Even though the the player was in the server, no trade was recieved in 25 seconds therefore the auto join will ignore this hit.")
+            IsStealing = false
+        else
+            TimeWithoutTrade = 0
+            asdada = tick()
+        end
+        task.wait()
     end
 end)
 task.spawn(function()
