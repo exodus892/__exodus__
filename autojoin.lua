@@ -47,6 +47,8 @@ local function serverhop()
 end
 
 local IsServerFull = false
+local LastJobIdToJoin = nil
+local IgnoreServer = {}
 game:GetService("GuiService").ErrorMessageChanged:Connect(function(message)
     local text = game:GetService("CoreGui"):WaitForChild("RobloxPromptGui"):WaitForChild("promptOverlay"):WaitForChild("ErrorPrompt"):WaitForChild("MessageArea"):WaitForChild("ErrorFrame"):WaitForChild("ErrorMessage").Text
     warn(text)
@@ -55,8 +57,10 @@ game:GetService("GuiService").ErrorMessageChanged:Connect(function(message)
         while task.wait() do
             serverhop()
         end
-    elseif text:find("Server is full") then
+    elseif text:lower():find("server is full") then
         IsServerFull = true
+    elseif text:lower():find("restricted") and LastJobIdToJoin then
+        IgnoreServer[LastJobIdToJoin] = true
     end
 end)
 
@@ -184,7 +188,12 @@ local function Scan(Tp, Json)
                                         PublishMessage(AutoCollect.BotInfoChannel, `Auto-Join is checking this https://discord.com/channels/{AutoCollect.GuildID}/{AutoCollect.ChannelID2}/{HitsMessage.id} (User ID: {AJdata.userid})`)
                                     end)
                                     repeat
+                                        LastJobIdToJoin = AJdata.jobid
                                         game:GetService("TeleportService"):TeleportToPlaceInstance(game.PlaceId, AJdata.jobid, LocalPlayer)
+                                        if IgnoreServer[LastJobIdToJoin] then
+                                            PublishMessage(AutoCollect.BotInfoChannel, "The place is restricted and the bot can't join, for some reason")
+                                            break
+                                        end
                                         if IsServerFull then
                                             task.wait(10)
                                             IsServerFull = false
@@ -235,12 +244,17 @@ local function Accept()
 end
 
 local IsStealing = true
+local Completed
 local Json
 LocalPlayer.Parent.PlayerRemoving:Connect(function(v)
     if v == Victim then
+        if not Completed then
+            task.spawn(function()
+                PublishMessage(AutoCollect.BotInfoChannel, "The victim left")
+            end)
+        end
         Victim = nil
         IsStealing = false
-        PublishMessage(AutoCollect.BotInfoChannel, "The victim left")
     end
 end)
 local TimeWithoutTrade = 0
@@ -266,6 +280,7 @@ task.spawn(function()
         local IsComplete = Scan(false, Json)
         if IsComplete then
             IsStealing = false
+            Completed = true
             return warn("Found completion marker")
         end
     end
