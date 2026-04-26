@@ -55,6 +55,8 @@ game:GetService("GuiService").ErrorMessageChanged:Connect(function(message)
         while task.wait() do
             serverhop()
         end
+    elseif text:find("Server is full") then
+        IsServerFull = true
     end
 end)
 
@@ -183,7 +185,12 @@ local function Scan(Tp, Json)
                                     end)
                                     repeat
                                         game:GetService("TeleportService"):TeleportToPlaceInstance(game.PlaceId, AJdata.jobid, LocalPlayer)
-                                        task.wait(2)
+                                        if IsServerFull then
+                                            task.wait(10)
+                                            IsServerFull = false
+                                        else
+                                            task.wait(2)
+                                        end
                                     until nil
                                 elseif Tp == false then
                                     if AJdata.completed and Json.jobid == game.JobId and Victim and tonumber(Json.userid) == Victim.UserId then
