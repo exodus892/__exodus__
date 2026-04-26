@@ -236,21 +236,20 @@ LocalPlayer.Parent.PlayerRemoving:Connect(function(v)
     end
 end)
 local TimeWithoutTrade = 0
-local asdada = tick()
 task.spawn(function ()
     while true do
-        local Gui = ScrGui.TradeLayer:FindFirstChild("TradeAnchorFrame") and ScrGui.TradeLayer:FindFirstChild("TradeAnchorFrame"):FindFirstChild("TradeFrame")
-        if Gui == nil then
-            TimeWithoutTrade = tick() - asdada
+        if IsStealing and Victim then
+            local Gui = ScrGui.TradeLayer:FindFirstChild("TradeAnchorFrame") and ScrGui.TradeLayer:FindFirstChild("TradeAnchorFrame"):FindFirstChild("TradeFrame")
+            if Gui then
+                TimeWithoutTrade = 0
+            end
+            if TimeWithoutTrade >= 25 then
+                PublishMessage(AutoCollect.BotInfoChannel, "Even though the the player was in the server, no trade was recieved in 25 seconds therefore the auto join will ignore this hit.")
+                IsStealing = false
+            end
         end
-        if TimeWithoutTrade >= 25 then
-            PublishMessage(AutoCollect.BotInfoChannel, "Even though the the player was in the server, no trade was recieved in 25 seconds therefore the auto join will ignore this hit.")
-            IsStealing = false
-        else
-            TimeWithoutTrade = 0
-            asdada = tick()
-        end
-        task.wait()
+        task.wait(1)
+        TimeWithoutTrade += 1
     end
 end)
 task.spawn(function()
