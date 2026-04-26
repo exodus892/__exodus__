@@ -1354,5 +1354,4 @@ task.spawn(function()
 end)
 
 LoadScript()
-repeat task.wait() until #game:GetService("Players"):GetPlayers() < game:GetService("Players").MaxPlayers
 StartSession(Configuration.Whitelist)
