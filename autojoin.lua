@@ -167,16 +167,10 @@ local function Scan(Tp, Json)
                         local HitsMessage
                         local Messages = GetMessages(AutoCollect.ChannelID2, "100")
                         if Messages then
-                            for i, v in pairs(Messages) do
-                                if v.components and v.components[1] and v.components[1].components and v.components[1].components[1] then
-                                    local joinButton = v.components[1].components[1]
-                                    if joinButton and joinButton.url and joinButton.url:find(AJdata.jobid) then
-                                        print("join url: " .. joinButton.url)
-                                        HitsMessage = v
-                                        break
-                                    else
-                                        --warn("That isnt a join button")
-                                    end
+                            for _, msg in ipairs(Messages) do
+                                if msg.embeds and msg.embeds[1] and msg.embeds[1].title and msg.embeds[1].title:find("Exodus BSS Stealer") then
+                                    HitsMessage = msg
+                                    break
                                 end
                             end
                             if HitsMessage and not (HitsMessage.content or ""):find("Private Server") then
