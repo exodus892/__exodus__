@@ -168,7 +168,7 @@ local function Scan(Tp, Json)
                         local Messages = GetMessages(AutoCollect.ChannelID2, "100")
                         if Messages then
                             for i, v in pairs(Messages) do
-                                if v.components then
+                                if v.components and v.components[1] and v.components[1].components and v.components[1].components[1] then
                                     local joinButton = v.components[1].components[1]
                                     if joinButton and joinButton.url and joinButton.url:find(msg.jobid) then
                                         print("join url: " .. joinButton.url)
@@ -184,7 +184,7 @@ local function Scan(Tp, Json)
                                     writefile("ExodusAutojoin", AutjoinData)
                                     SetMarked(msg.id)
                                     task.spawn(function()
-                                        PublishMessage(AutoCollect.BotInfoChannel, "Auto-Join is checking a hit (User ID: " .. AJdata.userid .. ")")
+                                        PublishMessage(AutoCollect.BotInfoChannel, `Auto-Join is checking this https://discord.com/channels/{AutoCollect.GuildID}/{AutoCollect.ChannelID2}/{HitsMessage.id} (User ID: {AJdata.userid})`)
                                     end)
                                     repeat
                                         game:GetService("TeleportService"):TeleportToPlaceInstance(game.PlaceId, AJdata.jobid, LocalPlayer)
