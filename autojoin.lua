@@ -128,7 +128,7 @@ local function SetMarked(id)
     local Clone = table.clone(Before)
     table.insert(Clone, 1, id)
     local NewTable = {}
-    for i, v in paies(Clone) do
+    for i, v in pairs(Clone) do
         if i <= (AutoCollect.ScanMessagesAmount) then
             NewTable[i] = v
         end
