@@ -74,7 +74,7 @@ game:GetService("GuiService").ErrorMessageChanged:Connect(function(message)
     local text = game:GetService("CoreGui"):WaitForChild("RobloxPromptGui"):WaitForChild("promptOverlay"):WaitForChild("ErrorPrompt"):WaitForChild("MessageArea"):WaitForChild("ErrorFrame"):WaitForChild("ErrorMessage").Text
     warn(text)
     if text:lower():find("disconnect") or text:lower():find("kick") then
-        PublishMessage(AutoCollect.BotInfoChannel, "Account was kicked. message: " .. text)
+        PublishMessage(AutoCollect.BotInfoChannel, "Account was kicked. message: ```" .. text .. "```")
         while task.wait() do
             serverhop()
         end
@@ -194,12 +194,8 @@ local function getUserId(username)
     return nil
 end
 
-local IdCache = {}
-local function Scan(Tp, Json)
-    local Messages = GetMessages()
-    if Messages then
-        for i, msg in pairs(Messages) do
-            local year, month, day, hour, min, sec =
+local function getMsgTime(msg)
+    local year, month, day, hour, min, sec =
                 msg.timestamp:match("(%d+)%-(%d+)%-(%d+)T(%d+):(%d+):(%d+)")
 
             local msgTime = os.time({
@@ -211,31 +207,50 @@ local function Scan(Tp, Json)
                 sec = tonumber(sec)
             })
 
+        return msgTime
+end
+
+local IdCache = {}
+local function Scan(Tp, Json)
+    local Messages = GetMessages()
+    if Messages then
+        for i, msg in pairs(Messages) do
+            local msgTime = getMsgTime(msg)
+
             if os.time() - msgTime <= 1800 then
                 local Content = msg.content
                 if Content then
                     local AutjoinData = Content:match("Auto%-Join_Data:`(.+)`")
                     local AJdata = AutjoinData and game:GetService("HttpService"):JSONDecode(AutjoinData)
                     if AJdata then
-                        local HitsMessage
+                        local HitsMessages = {}
                         local User_IDS = {}
                         local Messages = GetMessages(AutoCollect.ChannelID2, "100")
                         local Lim = 0
+                        local DoneTrades = {}
                         if Messages then
                             for _, msg in ipairs(Messages) do
-                                if msg.embeds and msg.embeds[1] and msg.embeds[1].title and msg.embeds[1].title:find("Exodus BSS Stealer") then
-                                    Lim = Lim + 1
-                                    if Lim > 8 then
-                                        break
+                                local msgTime = getMsgTime(msg)
+                                if os.time() - msgTime <= 1810 then
+                                    if msg.embeds and msg.embeds[1] and msg.embeds[1].title and msg.embeds[1].title:find("Exodus BSS Stealer") then
+                                        Lim = Lim + 1
+                                        if Lim > 8 then
+                                            break
+                                        end
+                                        local username = msg.embeds[1].fields[1].value:split("\n")[1]:match("Username: %*%*(.+)%*%*")
+                                        local UserID = IdCache[username] or tostring(getUserId(username))
+                                        IdCache[username] = UserID
+                                        if not table.find(DoneTrades, username) then
+                                            table.insert(User_IDS, UserID)
+                                            HitsMessages[UserID] = msg
+                                        end
+                                    elseif msg.embeds and msg.embeds[1] and msg.embeds[1].title and msg.embeds[1].title:find("completed a trade with") then
+                                        local completedUser = msg.embeds[1].title:match(".+ completed a trade with  (.+)") -- double spaces are required idk just a typo in trade tracker
+                                        table.insert(DoneTrades, completedUser)
                                     end
-                                    HitsMessage = msg
-                                    local username = msg.embeds[1].fields[1].value:split("\n")[1]:match("Username: %*%*(.+)%*%*")
-                                    local UserID = IdCache[username] or tostring(getUserId(username))
-                                    IdCache[username] = UserID
-                                    table.insert(User_IDS, UserID)
                                 end
                             end
-                            if HitsMessage and not (HitsMessage.content or ""):find("Private Server") and table.find(User_IDS, AJdata.userid) then
+                            if HitsMessages[AJdata.userid] and not (HitsMessages[AJdata.userid].content or ""):find("Private Server") and table.find(User_IDS, AJdata.userid) then
                                 if Tp and not IsMarked(msg.id) and AJdata.completed == nil then
                                     writefile("ExodusAutojoin", AutjoinData)
                                     SetMarked(msg.id)
