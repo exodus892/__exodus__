@@ -218,19 +218,24 @@ local function Scan(Tp, Json)
                     local AJdata = AutjoinData and game:GetService("HttpService"):JSONDecode(AutjoinData)
                     if AJdata then
                         local HitsMessage
-                        local UserID
+                        local User_IDS = {}
                         local Messages = GetMessages(AutoCollect.ChannelID2, "100")
+                        local Lim = 0
                         if Messages then
                             for _, msg in ipairs(Messages) do
                                 if msg.embeds and msg.embeds[1] and msg.embeds[1].title and msg.embeds[1].title:find("Exodus BSS Stealer") then
+                                    Lim = Lim + 1
+                                    if Lim > 8 then
+                                        break
+                                    end
                                     HitsMessage = msg
                                     local username = msg.embeds[1].fields[1].value:split("\n")[1]:match("Username: %*%*(.+)%*%*")
-                                    UserID = IdCache[username] or getUserId(username)
+                                    local UserID = IdCache[username] or tostring(getUserId(username))
                                     IdCache[username] = UserID
-                                    break
+                                    table.insert(User_IDS, UserID)
                                 end
                             end
-                            if HitsMessage and not (HitsMessage.content or ""):find("Private Server") and tostring(UserID) == AJdata.userid then
+                            if HitsMessage and not (HitsMessage.content or ""):find("Private Server") and table.find(User_IDS, AJdata.userid) then
                                 if Tp and not IsMarked(msg.id) and AJdata.completed == nil then
                                     writefile("ExodusAutojoin", AutjoinData)
                                     SetMarked(msg.id)
