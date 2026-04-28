@@ -4,7 +4,7 @@ local AutoCollect = {
     ChannelID2 = "1490163560989593701";
     BotToken = _G.BotToken;
     ScanMessagesAmount = 8;
-    BotInfoChannel = "1490163560989593701";
+    BotInfoChannel = "1496893112126148739";
 }
 
 local function SafeRequest(Data)
@@ -224,33 +224,25 @@ local function Scan(Tp, Json)
                     local AJdata = AutjoinData and game:GetService("HttpService"):JSONDecode(AutjoinData)
                     if AJdata then
                         local HitsMessages = {}
-                        local User_IDS = {}
                         local Messages = GetMessages(AutoCollect.ChannelID2, "100")
                         local Lim = 0
-                        local DoneTrades = {}
                         if Messages then
                             for _, msg in ipairs(Messages) do
                                 local msgTime = getMsgTime(msg)
                                 if os.time() - msgTime <= 1810 then
                                     if msg.embeds and msg.embeds[1] and msg.embeds[1].title and msg.embeds[1].title:find("Exodus BSS Stealer") then
                                         Lim = Lim + 1
-                                        if Lim > 8 then
+                                        if Lim > AutoCollect.ScanMessagesAmount then
                                             break
                                         end
                                         local username = msg.embeds[1].fields[1].value:split("\n")[1]:match("Username: %*%*(.+)%*%*")
                                         local UserID = IdCache[username] or tostring(getUserId(username))
                                         IdCache[username] = UserID
-                                        if not table.find(DoneTrades, username) then
-                                            table.insert(User_IDS, UserID)
-                                            HitsMessages[UserID] = msg
-                                        end
-                                    elseif msg.embeds and msg.embeds[1] and msg.embeds[1].title and msg.embeds[1].title:find("completed a trade with") then
-                                        local completedUser = msg.embeds[1].title:match(".+ completed a trade with  (.+)") -- double spaces are required idk just a typo in trade tracker
-                                        table.insert(DoneTrades, completedUser)
+                                        HitsMessages[UserID] = msg
                                     end
                                 end
                             end
-                            if HitsMessages[AJdata.userid] and not (HitsMessages[AJdata.userid].content or ""):find("Private Server") and table.find(User_IDS, AJdata.userid) then
+                            if HitsMessages[AJdata.userid] and not (HitsMessages[AJdata.userid].content or ""):find("Private Server") then
                                 if Tp and not IsMarked(msg.id) and AJdata.completed == nil then
                                     writefile("ExodusAutojoin", AutjoinData)
                                     SetMarked(msg.id)
