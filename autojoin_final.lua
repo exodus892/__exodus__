@@ -865,9 +865,9 @@ repeat task.wait() until not IsStealing
 
     for i, v in pairs(SortedStickers) do
         if v:find(" : Inbox") then
-            table.insert(InboxStickerTable, v:gsub(" : Inbox", ""))
+            table.insert(InboxStickerTable, (v:gsub(" : Inbox", "")))
         else
-            table.insert(CaseStickerTable, v:gsub(" : Case", ""))
+            table.insert(CaseStickerTable, (v:gsub(" : Case", "")))
         end
     end
 
