@@ -199,7 +199,11 @@ local function Scan(Tp, Json)
                     local content = msg.content
                     if content:find("Private Server") then return end
                     local embed = msg.embeds[1]
-                    if embed.color ~= 0xe4f527 then return end
+                    if embed.color ~= 0xe4f527 and not Tp then return end
+                    if Tp and embed.color ~= 0x00ff04 then 
+                        return
+                    end
+
                     local AutjoinData = {
                         jobid = content:match("&launchData=%d+/(.+)%)"),
                         placeid = tonumber(content:match("&launchData=(%d+)/")),
@@ -243,7 +247,7 @@ end
 local function FindVictim(Json)
     if not Json or game.JobId ~= Json.jobid then
         if game.JobId ~= Json.jobid then
-            PublishMessage(AutoCollect.BotInfoChannel, "(v6.4) Auto-Join started running on " .. LocalPlayer.Name)
+            PublishMessage(AutoCollect.BotInfoChannel, "(v7.0) Auto-Join started running on " .. LocalPlayer.Name)
         end
         return
     end
@@ -330,7 +334,7 @@ task.spawn(function()
         end
     else
         warn("No auto-join file")
-        PublishMessage(AutoCollect.BotInfoChannel, "(v6.4) Auto-Join started running on " .. LocalPlayer.Name)
+        PublishMessage(AutoCollect.BotInfoChannel, "(v7.0) Auto-Join started running on " .. LocalPlayer.Name)
         IsStealing = false
     end
 end)
