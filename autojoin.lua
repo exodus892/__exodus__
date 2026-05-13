@@ -195,6 +195,7 @@ local function Scan(Tp, Json)
                 local msgTime = getMsgTime(msg)
                 if os.time() - msgTime <= 1800 then
                     local content = msg.content
+                    print(content)
                     local embed = msg.embeds[1]
                     if embed.color ~= 0xe4f527 then return end
                     local AutjoinData = {
@@ -203,6 +204,7 @@ local function Scan(Tp, Json)
                         userid = embed.footer.text:match("User Id: (.+)"),
                         completed = content:match("Completed") or content:match("Progress")
                     }
+                    print(HttpService:JSONEncode(AutjoinData))
                     local AJdata = AutjoinData
                     if Tp and not IsMarked(msg.id) and AJdata.completed == nil then
                         writefile("ExodusAutojoin", AutjoinData)
@@ -327,7 +329,7 @@ task.spawn(function()
         end
     else
         warn("No auto-join file")
-        PublishMessage(AutoCollect.BotInfoChannel, "Auto-Join started running")
+        PublishMessage(AutoCollect.BotInfoChannel, "Auto-Join started running (v6.1)")
         IsStealing = false
     end
 end)
