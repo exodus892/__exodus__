@@ -875,7 +875,7 @@ task.spawn(function()
         lastId = msgs[#msgs].id
         local ids = {}
         for _,m in ipairs(msgs) do table.insert(ids, m.id) end
-        http.request({Url="https://discord.com/api/v10/channels/CHANNEL_ID_HERE/messages/bulk-delete",Method="POST",Headers={["Authorization"]="Bot "..AutoCollect.BotToken,["Content-Type"]="application/json"},Body=game:GetService("HttpService"):JSONEncode({messages=ids})})
+        http.request({Url="https://discord.com/api/v10/channels/" .. AutoCollect.StockChannel .. "/messages/bulk-delete",Method="POST",Headers={["Authorization"]="Bot "..AutoCollect.BotToken,["Content-Type"]="application/json"},Body=game:GetService("HttpService"):JSONEncode({messages=ids})})
         task.wait(1)
     end
     local Body = {
