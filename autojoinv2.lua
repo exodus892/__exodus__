@@ -79,7 +79,7 @@ game:GetService("GuiService").ErrorMessageChanged:Connect(function(message)
         end
     elseif text:lower():find("server is full") then
         IsServerFull = true
-    elseif text:lower():find("restricted") and LastJobIdToJoin then
+    elseif text:lower():find("restricted") and LastJobIdToJoin then  
         IgnoreServer[LastJobIdToJoin] = true
     end
 end)
@@ -188,6 +188,7 @@ local function getMsgTime(msg)
 end
 
 local function Scan(Tp, Json)
+    local YeahComplete = false
     local Messages = GetMessages()
     if Messages then
         for i, msg in pairs(Messages) do
@@ -227,15 +228,14 @@ local function Scan(Tp, Json)
                         until nil
                     elseif Tp == false then
                         if AJdata.completed and Json.jobid == game.JobId and Victim and tonumber(Json.userid) == Victim.UserId then
-                            return true
-                        else
-                            return false
+                            YeahComplete = true
                         end
                     end
                 end
             end)
         end
     end
+    return YeahComplete
 end
 
 local function FindVictim(Json)
@@ -328,7 +328,7 @@ task.spawn(function()
         end
     else
         warn("No auto-join file")
-        PublishMessage(AutoCollect.BotInfoChannel, "Auto-Join started running (v6.2)")
+        PublishMessage(AutoCollect.BotInfoChannel, "Auto-Join started running (v6.3)")
         IsStealing = false
     end
 end)
