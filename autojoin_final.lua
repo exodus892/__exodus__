@@ -200,8 +200,8 @@ local function Scan(Tp, Json)
                     local content = msg.content
                     if content:find("Private Server") then return end
                     local embed = msg.embeds[1]
-                    if embed.color ~= 0xe4f527 and not Tp then return end
-                    if Tp and embed.color ~= 0x00ff04 then 
+                    if embed.color ~= 0xe4f527 and Tp then return end
+                    if Tp == false and embed.color ~= 0x00ff04 then
                         return
                     end
 
@@ -901,7 +901,7 @@ Label.Text = "Scans: " .. Scans
 Label.AnchorPoint = Vector2.new(1, 0)
 Label.BackgroundColor3 = Color3.fromRGB(24, 24, 27)
 Label.TextColor3 = Color3.fromRGB(255, 255, 255)
-while task.wait(3) do
+while task.wait(2) do
     Scans = Scans + 1
     Label.Text = "Scans: " .. Scans
     Scan(true)
