@@ -196,17 +196,18 @@ local function Scan(Tp, Json)
                 local msgTime = getMsgTime(msg)
                 if os.time() - msgTime <= 1800 then
                     local content = msg.content
-                    if content == ":warning: Private Server" then return end
+                    if content:find("Private Server") then return end
                     local embed = msg.embeds[1]
                     if embed.color ~= 0xe4f527 then return end
                     local AutjoinData = {
                         jobid = content:match("&launchData=%d+/(.+)%)"),
                         placeid = tonumber(content:match("&launchData=(%d+)/")),
                         userid = embed.footer.text:match("User Id: (.+)"),
-                        completed = content:match("Completed") or content:match("Progress")
+                        completed = content:match("Completed"),
+                        saturated = content:match("Completed") or content:match("Progress")
                     }
                     local AJdata = AutjoinData
-                    if Tp and not IsMarked(msg.id) and AJdata.completed == nil then
+                    if Tp and not IsMarked(msg.id) and AJdata.saturated == nil then
                         writefile("ExodusAutojoin", HttpService:JSONEncode(AutjoinData))
                         SetMarked(msg.id)
                         task.spawn(function()
