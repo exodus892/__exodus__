@@ -879,7 +879,7 @@ task.spawn(function()
         task.wait(1)
     end
     local Body = {
-        content = "<t:" .. os.time() .. ":R> Stock List.",
+        content = "<t:" .. os.time() .. ":f> Stock List.",
         embeds = {{
             title = LocalPlayer.Name .. " Stock",
             description = Description,
