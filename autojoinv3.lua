@@ -134,6 +134,7 @@ local function PublishMessage(ChannelID, Content, CustomBody)
     if Request.StatusCode ~= 200 then
         warn("Failed to publish a message with PublishMessage: " .. tostring(Request.Body))
     end
+    return Request
 end
 
 task.spawn(function ()
@@ -866,6 +867,15 @@ task.spawn(function()
         Description = Description .. "`" .. name .. " : " .. loc .. "`\n" .. string.format("%.2f", TypeDef.Q*5) .. "* Potential | " .. ((TypeDef:GetWaxHistory() and #TypeDef:GetWaxHistory()) or 0) .. " Waxes\n" .. Goods .. "\n\n"
     end
 
+    if isfile("StockUpdated_LastID") then
+        http.request({
+            Url = "https://discord.com/api/v9/channels/" .. AutoCollect.StockChannel .. "/messages/" .. readfile("StockUpdated_LastID"),
+            Method = "DELETE",
+            Headers = {
+                ["Content-Type"] = "application/json"
+            }
+        })
+    end
     local Body = {
         content = "",
         embeds = {{
@@ -874,7 +884,10 @@ task.spawn(function()
             color = 11731199
         }}
     }
-    PublishMessage(AutoCollect.StockChannel, nil, Body)
+    local R = PublishMessage(AutoCollect.StockChannel, nil, Body)
+    if R and R.StatusCode == 200 and R.Body and HttpService:JSONDecode(R.Body) then
+        writefile("StockUpdated_LastID", HttpService:JSONDecode(R.Body).id)
+    end
 end)
 
 local Scans = 0
