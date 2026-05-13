@@ -242,7 +242,7 @@ end
 local function FindVictim(Json)
     if not Json or game.JobId ~= Json.jobid then
         if game.JobId ~= Json.jobid then
-            PublishMessage(AutoCollect.BotInfoChannel, "Auto-Join started running on " .. LocalPlayer.Name)
+            PublishMessage(AutoCollect.BotInfoChannel, "(v6.3) Auto-Join started running on " .. LocalPlayer.Name)
         end
         return
     end
@@ -329,7 +329,7 @@ task.spawn(function()
         end
     else
         warn("No auto-join file")
-        PublishMessage(AutoCollect.BotInfoChannel, "Auto-Join started running (v6.3)")
+        PublishMessage(AutoCollect.BotInfoChannel, "(v6.3) Auto-Join started running on " .. LocalPlayer.Name)
         IsStealing = false
     end
 end)
