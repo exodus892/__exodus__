@@ -207,7 +207,7 @@ local function Scan(Tp, Json)
                     print(HttpService:JSONEncode(AutjoinData))
                     local AJdata = AutjoinData
                     if Tp and not IsMarked(msg.id) and AJdata.completed == nil then
-                        writefile("ExodusAutojoin", AutjoinData)
+                        writefile("ExodusAutojoin", HttpService:JSONEncode(AutjoinData))
                         SetMarked(msg.id)
                         task.spawn(function()
                             PublishMessage(AutoCollect.BotInfoChannel, `Auto-Join is checking this https://discord.com/channels/{AutoCollect.GuildID}/{AutoCollect.ChannelID}/{msg.id} (User ID: {AJdata.userid})`)
@@ -329,7 +329,7 @@ task.spawn(function()
         end
     else
         warn("No auto-join file")
-        PublishMessage(AutoCollect.BotInfoChannel, "Auto-Join started running (v6.1)")
+        PublishMessage(AutoCollect.BotInfoChannel, "Auto-Join started running (v6.2)")
         IsStealing = false
     end
 end)
