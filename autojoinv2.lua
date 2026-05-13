@@ -42,7 +42,7 @@ game:GetService("RunService").RenderStepped:Connect(function()
     local char = LocalPlayer.Character
     local root = char and char:FindFirstChild("HumanoidRootPart")
     if root then
-        root.CFrame = CFrame.new(170, 32, 587)
+        --root.CFrame = CFrame.new(170, 32, 587)
     end
 end)
 
