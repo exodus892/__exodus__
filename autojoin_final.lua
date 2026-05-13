@@ -869,7 +869,7 @@ task.spawn(function()
 
     local lastId = nil
     for i = 1, 10 do
-        local res = http.request({Url="https://discord.com/api/v10/channels/CHANNEL_ID_HERE/messages?limit=100"..(lastId and "&before="..lastId or ""),Method="GET",Headers={["Authorization"]="Bot "..AutoCollect.BotToken}})
+        local res = http.request({Url="https://discord.com/api/v10/channels/" .. AutoCollect.StockChannel .. "/messages?limit=100"..(lastId and "&before="..lastId or ""),Method="GET",Headers={["Authorization"]="Bot "..AutoCollect.BotToken}})
         local msgs = game:GetService("HttpService"):JSONDecode(res.Body)
         if not msgs or #msgs == 0 then break end
         lastId = msgs[#msgs].id
