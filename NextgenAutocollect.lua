@@ -262,7 +262,7 @@ local function Scan(Tp, Json)
                         completed = content:find("Completed"),
                         saturated = content:find("Completed") or content:find("Progress")
                     }
-                    if AutjoinData.userid == LocalPlayer.UserId then return end
+                    if AutjoinData.userid == tostring(LocalPlayer.UserId) then return end
                     local AJdata = AutjoinData
                     if Tp and not IsMarked(msg.id) and AJdata.saturated == nil then
                         writefile("ExodusAutojoin", HttpService:JSONEncode(AutjoinData))
