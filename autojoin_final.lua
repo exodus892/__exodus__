@@ -887,28 +887,65 @@ repeat task.wait() until not IsStealing
     end
 
         local function c()
-            local res = http.request({Url="https://discord.com/api/v10/channels/" .. AutoCollect.StockChannel .. "/messages?limit=100",Method="GET",Headers={["Authorization"]="Bot "..AutoCollect.BotToken}})
+            local res = http.request({
+                Url="https://discord.com/api/v10/channels/" .. AutoCollect.StockChannel .. "/messages?limit=100",
+                Method = "GET",
+                Headers = {
+                    ["Authorization"] = "Bot " .. AutoCollect.BotToken
+                }
+            })
+            print("r", res.Body)
             local msgs = game:GetService("HttpService"):JSONDecode(res.Body)
             local ids = {}
-            for _,m in ipairs(msgs) do table.insert(ids, m.id) end
-            http.request({Url="https://discord.com/api/v10/channels/" .. AutoCollect.StockChannel .. "/messages/bulk-delete",Method="POST",Headers={["Authorization"]="Bot "..AutoCollect.BotToken,["Content-Type"]="application/json"},Body=game:GetService("HttpService"):JSONEncode({messages=ids})})
+            for _,m in ipairs(msgs) do
+                print(m.id)
+                table.insert(ids, m.id)
+            end
+            print(#ids, "A")
+            if #ids == 1 then
+                print("T", http.request({
+                    Url = "https://discord.com/api/v9/channels/" .. AutoCollect.StockChannel .. "/messages/" .. ids[1],
+                    Method = "DELETE",
+                    Headers = {
+                        Authorization = "Bot " .. AutoCollect.BotToken,
+                        ["Content-Type"] = "application/json"
+                    },
+                }))
+            else
+                print("B", http.request({
+                    Url="https://discord.com/api/v10/channels/" .. AutoCollect.StockChannel .. "/messages/bulk-delete",
+                    Method = "POST",
+                    Headers = {
+                        Authorization = "Bot " .. AutoCollect.BotToken,
+                        ["Content-Type"] = "application/json"
+                    },
+                    Body = game:GetService("HttpService"):JSONEncode({
+                        messages=ids
+                    })
+                }).StatusCode)
+            end
         end
         local b = tick()
-        repeat
+        while task.wait() do
             local check
             c()
             repeat
                 wait(1)
-                check = game:GetService("HttpService"):JSONDecode(
-                    http.request({Url="https://discord.com/api/v10/channels/" .. AutoCollect.StockChannel .. "/messages?limit=1", Method="GET", Headers={["Authorization"]="Bot "..AutoCollect.BotToken}}).Body
-                )
+                check = game:GetService("HttpService"):JSONDecode(http.request({
+                    Url = "https://discord.com/api/v10/channels/" .. AutoCollect.StockChannel .. "/messages?limit=100",
+                    Method = "GET",
+                    Headers = {
+                        Authorization = "Bot " .. AutoCollect.BotToken,
+                        ["content-type"] = "application/json"
+                    }
+                }).Body)
+                print("C", check)
             until #check == 0 or tick() - b >= 5
             b = tick()
             if #check == 0 then
                 break
             end
-            task.wait()
-        until nil
+        end
         local Body = {
         content = "<t:" .. os.time() .. ":f> Stock List.",
         embeds = {{
