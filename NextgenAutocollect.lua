@@ -106,13 +106,13 @@ Label.Position = UDim2.new(1, -99, 0, 20)
 Label.Text = "Waiting .."
 Label.AnchorPoint = Vector2.new(1, 0)
 Label.BackgroundColor3 = Color3.fromRGB(24, 24, 27)
+Label.BackgroundTransparency = 0.5
 Label.TextColor3 = Color3.fromRGB(255, 255, 255)
 
 local ntv = Label:Clone()
 ntv.Parent = Gui
 ntv.Position = UDim2.new(1, -99, 0, 64)
 ntv.BackgroundColor3 = Color3.fromRGB(255, 136, 0)
-Label.TextColor3 = Color3.fromRGB(255, 255, 255)
 
 local redeemticketvoucher = function()
     
@@ -458,7 +458,7 @@ local function GetBQStatsString(File, Name)
 
         local function Concat(...)
             for i, v in ipairs({...}) do
-                if v ~= nil then
+                if typeof(v) == "string" then
                     table.insert(Stats, v)
                 end
             end
@@ -526,11 +526,11 @@ local function GetBQStatsString(File, Name)
 
         elseif Name == "Kazoo" then
             local CPHB = Strings.Hivebonus:match("%+(%d+)%% Critical Power")
-            local SCPHB = Strings.Hivebonus:match("%+(%d+)%% Super-Crit Power")
+            local SCPHB = Strings.Hivebonus:match("%+(%d+)%% Super%-Crit Power")
             if CPHB == nil and SCPHB == nil then
                 return
             end
-            Concat(CPHB and CPHB .. "% Critical Power", SCPHB and SCPHB .. "% Super-Crit Power")
+            Concat(CPHB and CPHB .. "% Critical Power", SCPHB and SCPHB .. "% Super%-Crit Power")
 
         elseif Name == "Paperclip" then
             local TokenLink = Strings.Ability:match("Token Link")
@@ -549,10 +549,10 @@ local function GetBQStatsString(File, Name)
 
         elseif Name == "Pink Shades" then
             local Focus = Strings.Ability:match("Focus")
-            local SuperCritPower = Strings.Hivebonus:match("%+(%d+)%% Super-Crit Power")
-            local SuperCritChance = Strings.Hivebonus:match("%+(%d+)%% Super-Crit Chance")
+            local SuperCritPower = Strings.Hivebonus:match("%+(%d+)%% Super%-Crit Power")
+            local SuperCritChance = Strings.Hivebonus:match("%+(%d+)%% Super%-Crit Chance")
             Ping = true
-            Concat(Focus and "Ability: Focus", SuperCritPower and SuperCritPower .. "% Super-Crit Power", SuperCritChance and SuperCritChance .. "% Super-Crit Chance")
+            Concat(Focus and "Ability: Focus", SuperCritPower and SuperCritPower .. "% Super%-Crit Power", SuperCritChance and SuperCritChance .. "% Super%-Crit Chance")
 
         elseif Name == "Smiley Sticker" then
             local HoneyMark = Strings.Ability:match("Honey Mark")
@@ -591,7 +591,7 @@ local function GetBQStatsString(File, Name)
             if Melody or (SuperCritPower and tonumber(SuperCritPower) >= 3) then
                 Ping = true
             end
-            Concat(Melody and "Ability: Melody", SuperCritPower and SuperCritPower .. "% Super-Crit Power")
+            Concat(Melody and "Ability: Melody", SuperCritPower and SuperCritPower .. "% Super%-Crit Power")
 
         elseif Name == "Elf Cap" then
             local HoneyAtHive = Strings.Hivebonus:match("%+(%d+)%% Honey At Hive")
