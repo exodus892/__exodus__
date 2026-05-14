@@ -210,7 +210,7 @@ local function Scan(Tp, Json)
                 local msgTime = getMsgTime(msg)
                 if os.time() - msgTime <= 1800 then
                     local content = msg.content
-                    if content:find("Private Server") then return end
+                    if content:find("Private Server") or content:find("Connection Lost") then return end
                     local embed = msg.embeds[1]
                     if embed.color ~= 0xe4f527 and Tp then return end
                     if Tp == false and embed.color ~= 0x00ff04 then
