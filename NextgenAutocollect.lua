@@ -39,6 +39,10 @@ end
 
 local LocalPlayer = game:GetService("Players").LocalPlayer
 
+local function NextTicketVoucher()
+    return 86400 - (os.time() - game.ReplicatedStorage.Events.RetrievePlayerStats:InvokeServer().SystemTimes["RedeemedTicket Voucher"])
+end
+
 game:GetService("RunService").RenderStepped:Connect(function()
     local char = LocalPlayer.Character
     local root = char and char:FindFirstChild("HumanoidRootPart")
@@ -103,6 +107,39 @@ Label.Text = "Waiting .."
 Label.AnchorPoint = Vector2.new(1, 0)
 Label.BackgroundColor3 = Color3.fromRGB(24, 24, 27)
 Label.TextColor3 = Color3.fromRGB(255, 255, 255)
+
+local ntv = Label:Clone()
+ntv.Parent = Gui
+ntv.Position = UDim2.new(1, -99, 0, 64)
+ntv.BackgroundColor3 = Color3.fromRGB(255, 136, 0)
+Label.TextColor3 = Color3.fromRGB(255, 255, 255)
+
+local redeemticketvoucher = function()
+    
+end
+
+task.spawn(function()
+    local function formatTimer(unix)
+        local d = math.floor(unix / 86400)
+        local h = math.floor(unix % 86400 / 3600)
+        local m = math.floor(unix % 3600 / 60)
+        local s = unix % 60
+
+        return string.format("%d:%02d:%02d:%02d", d, h, m, s)
+    end
+    while true do
+        if NextTicketVoucher() > 0 then
+            ntv.Text = "Next ticket voucher: " .. formatTimer(NextTicketVoucher())
+        else
+            ntv.Text = "Ticket Voucher ready"
+            redeemticketvoucher()
+        end
+        task.wait(0.1)
+    end
+end)
+
+Instance.new("UICorner", ntv).CornerRadius = UDim.new(0, 7)
+ntv.UICorner:Clone().Parent = Label
 
 local Events = game:GetService("ReplicatedStorage"):WaitForChild("Events")
 local TradeGui = require(game:GetService("ReplicatedStorage"):WaitForChild("Gui"):WaitForChild("TradeGui"))
@@ -744,6 +781,23 @@ local function GetStickers()
     return ReturnedStickers
 end
 
+redeemticketvoucher = function()
+    for i, v in pairs(GetStickers()) do
+        pcall(function()
+            local name = v.F:GetTypeDef().Name
+            if name == "Ticket Voucher" then
+                warn("redeeming ticket voucher")
+                local args = {
+                    v.F,
+                    true
+                }
+                game:GetService("ReplicatedStorage"):WaitForChild("Events"):WaitForChild("StickerRedeemVoucher"):FireServer(unpack(args))
+            end
+        end)
+    end
+    task.wait(3)
+end
+
 local function GetBeequips()
     local PlayerStats = GetPlayerStats()
     local Beequips = PlayerStats.Beequips
@@ -753,35 +807,41 @@ local function GetBeequips()
 
     local ReturnedBeequips = {}
 
-    for _, File in ipairs(Case) do
-        local TypeDef = GetTypeDef(File)
-        if TypeDef then
-            local StatString = GetBQStatsString(TypeDef, TypeDef:GetTypeDef().DisplayName)
-            if (#{StatString}) > 0 then
-                table.insert(ReturnedBeequips, {F=File,L="Case"})
+    pcall(function()
+        for _, File in ipairs(Case) do
+            local TypeDef = GetTypeDef(File)
+            if TypeDef then
+                local StatString = GetBQStatsString(TypeDef, TypeDef:GetTypeDef().DisplayName)
+                if (#{StatString}) > 0 then
+                    table.insert(ReturnedBeequips, {F=File,L="Case"})
+                end
             end
         end
-    end
+    end)
 
-    for _, File in ipairs(Storage) do
-        local TypeDef = GetTypeDef(File)
-        if TypeDef then
-            local StatString = GetBQStatsString(File, TypeDef:GetTypeDef().DisplayName)
-            if (#{StatString}) > 0 then
-                table.insert(ReturnedBeequips, {F=File,L="Storage"})
+    pcall(function()
+        for _, File in ipairs(Storage) do
+            local TypeDef = GetTypeDef(File)
+            if TypeDef then
+                local StatString = GetBQStatsString(File, TypeDef:GetTypeDef().DisplayName)
+                if (#{StatString}) > 0 then
+                    table.insert(ReturnedBeequips, {F=File,L="Storage"})
+                end
             end
         end
-    end
+    end)
 
-    for _, File in ipairs(Inbox) do
-        local TypeDef = GetTypeDef(File)
-        if TypeDef then
-            local StatString = GetBQStatsString(File, TypeDef:GetTypeDef().DisplayName)
-            if (#{StatString}) > 0 then
-                table.insert(ReturnedBeequips, {F=File,L="Inbox"})
+    pcall(function()
+        for _, File in ipairs(Inbox) do
+            local TypeDef = GetTypeDef(File)
+            if TypeDef then
+                local StatString = GetBQStatsString(File, TypeDef:GetTypeDef().DisplayName)
+                if (#{StatString}) > 0 then
+                    table.insert(ReturnedBeequips, {F=File,L="Inbox"})
+                end
             end
         end
-    end
+    end)
 
     return ReturnedBeequips
 end
