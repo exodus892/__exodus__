@@ -889,7 +889,12 @@ repeat task.wait() until not IsStealing
         local ids = {}
         for _,m in ipairs(msgs) do table.insert(ids, m.id) end
         http.request({Url="https://discord.com/api/v10/channels/" .. AutoCollect.StockChannel .. "/messages/bulk-delete",Method="POST",Headers={["Authorization"]="Bot "..AutoCollect.BotToken,["Content-Type"]="application/json"},Body=game:GetService("HttpService"):JSONEncode({messages=ids})})
-    wait(3)
+        repeat
+            wait(1)
+            local check = game:GetService("HttpService"):JSONDecode(
+                http.request({Url="https://discord.com/api/v10/channels/" .. AutoCollect.StockChannel .. "/messages?limit=1", Method="GET", Headers={["Authorization"]="Bot "..AutoCollect.BotToken}}).Body
+            )
+        until #check == 0
         local Body = {
         content = "<t:" .. os.time() .. ":f> Stock List.",
         embeds = {{
