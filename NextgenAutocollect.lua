@@ -1029,6 +1029,9 @@ PublishMessage(AutoCollect.StockChannel, nil, Body)
 warn("All that gobblydook is done")
 
 
+if game.PlaceId ~= 1537690962 then
+    game:GetService("TeleportService"):Teleport(1537690962, LocalPlayer)
+end
 task.spawn(function()
     if _G.loadatlasautojoin then
         loadstring(game:HttpGet("https://raw.githubusercontent.com/Chris12089/atlasbss/refs/heads/main/script.lua"))()
