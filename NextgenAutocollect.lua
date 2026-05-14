@@ -527,7 +527,7 @@ local function GetBQStatsString(File, Name)
             if CPHB == nil and SCPHB == nil then
                 return
             end
-            Concat(CPHB and CPHB .. "% Critical Power", SCPHB and SCPHB .. "% Super%-Crit Power")
+            Concat(CPHB and CPHB .. "% Critical Power", SCPHB and SCPHB .. "% Super-Crit Power")
 
         elseif Name == "Paperclip" then
             local TokenLink = Strings.Ability:match("Token Link")
@@ -560,7 +560,7 @@ local function GetBQStatsString(File, Name)
                 return
             end
             Ping = true
-            Concat(Focus and "Ability: Focus", SuperCritPower and SuperCritPower .. "% Super%-Crit Power", SuperCritChance and SuperCritChance .. "% Super%-Crit Chance")
+            Concat(Focus and "Ability: Focus", SuperCritPower and SuperCritPower .. "% Super-Crit Power", SuperCritChance and SuperCritChance .. "% Super-Crit Chance")
 
         elseif Name == "Smiley Sticker" then
             local HoneyMark = Strings.Ability:match("Honey Mark")
@@ -599,7 +599,7 @@ local function GetBQStatsString(File, Name)
             if Melody or (SuperCritPower and tonumber(SuperCritPower) >= 3) then
                 Ping = true
             end
-            Concat(Melody and "Ability: Melody", SuperCritPower and SuperCritPower .. "% Super%-Crit Power")
+            Concat(Melody and "Ability: Melody", SuperCritPower and SuperCritPower .. "% Super-Crit Power")
 
         elseif Name == "Elf Cap" then
             local HoneyAtHive = Strings.Hivebonus:match("%+(%d+)%% Honey At Hive")
