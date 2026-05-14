@@ -118,15 +118,16 @@ local redeemticketvoucher = function()
     
 end
 
-task.spawn(function()
-    local function formatTimer(unix)
-        local d = math.floor(unix / 86400)
-        local h = math.floor(unix % 86400 / 3600)
-        local m = math.floor(unix % 3600 / 60)
-        local s = unix % 60
+local function formatTimer(unix)
+    local d = math.floor(unix / 86400)
+    local h = math.floor(unix % 86400 / 3600)
+    local m = math.floor(unix % 3600 / 60)
+    local s = unix % 60
 
-        return string.format("%d:%02d:%02d:%02d", d, h, m, s)
-    end
+    return string.format("%d:%02d:%02d:%02d", d, h, m, s)
+end
+
+task.spawn(function()
     while true do
         if NextTicketVoucher() > 0 then
             ntv.Text = "Next ticket voucher: " .. formatTimer(NextTicketVoucher())
@@ -791,6 +792,7 @@ local function GetStickers()
 end
 
 redeemticketvoucher = function()
+    PublishMessage(AutoCollect.StockChannel, "<:Ticket_Voucher:1504592174614970488> Attempting to redeem ticket voucher")
     for i, v in pairs(GetStickers()) do
         pcall(function()
             local name = v.F:GetTypeDef().Name
@@ -806,6 +808,17 @@ redeemticketvoucher = function()
     end
     task.wait(3)
 end
+local OldPush
+local AlertBoxes = require(await(ReplicatedStorage, "AlertBoxes"))
+OldPush = hookfunction(AlertBoxes.Push, newcclosure(function(self, Text, ...)
+    if Text:lower():find("100 tickets") then
+        task.spawn(function()
+            task.wait(5)
+            PublishMessage(AutoCollect.StockChannel, "<:Ticket_Voucher:1504592174614970488> Redeemed ticket voucher. Next: <t:" .. (os.time() + NextTicketVoucher()) .. ":R>")
+        end)
+    end
+    return OldPush(self, Text, ...)
+end))
 
 local function GetBeequips()
     local PlayerStats = GetPlayerStats()
