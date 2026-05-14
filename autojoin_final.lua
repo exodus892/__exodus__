@@ -855,7 +855,9 @@ repeat task.wait() until not IsStealing
     }
 
     for _, Sticker in ipairs(Stickers) do
-        local Name = Sticker.F:GetTypeDef().Name:gsub("x2 Convert", 'Convert'):gsub("x2 Bee", 'Bee')
+        local Name = Sticker.F:GetTypeDef().Name:gsub("x2 Convert Speed Voucher", 'CSV'):gsub("x2 Bee Gather Voucher", 'BGV')
+            :gsub("Bear Bee Voucher", 'BBV'):gsub("Offline Voucher", 'OFV'):gsub("Ticket Voucher", 'TV')
+            :gsub("Cub Buddy Voucher", 'CBV')
         table.insert(StickerNames, Name .. " : " .. Sticker.L)
     end
 
@@ -884,17 +886,29 @@ repeat task.wait() until not IsStealing
         Description = Description .. "`" .. name .. " : " .. loc .. "`\n" .. string.format("%.1f", TypeDef.Q*5) .. " Potential | " .. ((TypeDef:GetWaxHistory() and #TypeDef:GetWaxHistory()) or 0) .. " Waxes\n" .. Goods .. "\n\n"
     end
 
-        local res = http.request({Url="https://discord.com/api/v10/channels/" .. AutoCollect.StockChannel .. "/messages?limit=100",Method="GET",Headers={["Authorization"]="Bot "..AutoCollect.BotToken}})
-        local msgs = game:GetService("HttpService"):JSONDecode(res.Body)
-        local ids = {}
-        for _,m in ipairs(msgs) do table.insert(ids, m.id) end
-        http.request({Url="https://discord.com/api/v10/channels/" .. AutoCollect.StockChannel .. "/messages/bulk-delete",Method="POST",Headers={["Authorization"]="Bot "..AutoCollect.BotToken,["Content-Type"]="application/json"},Body=game:GetService("HttpService"):JSONEncode({messages=ids})})
+        local function c()
+            local res = http.request({Url="https://discord.com/api/v10/channels/" .. AutoCollect.StockChannel .. "/messages?limit=100",Method="GET",Headers={["Authorization"]="Bot "..AutoCollect.BotToken}})
+            local msgs = game:GetService("HttpService"):JSONDecode(res.Body)
+            local ids = {}
+            for _,m in ipairs(msgs) do table.insert(ids, m.id) end
+            http.request({Url="https://discord.com/api/v10/channels/" .. AutoCollect.StockChannel .. "/messages/bulk-delete",Method="POST",Headers={["Authorization"]="Bot "..AutoCollect.BotToken,["Content-Type"]="application/json"},Body=game:GetService("HttpService"):JSONEncode({messages=ids})})
+        end
+        local b = tick()
         repeat
-            wait(1)
-            local check = game:GetService("HttpService"):JSONDecode(
-                http.request({Url="https://discord.com/api/v10/channels/" .. AutoCollect.StockChannel .. "/messages?limit=1", Method="GET", Headers={["Authorization"]="Bot "..AutoCollect.BotToken}}).Body
-            )
-        until #check == 0
+            local check
+            c()
+            repeat
+                wait(1)
+                check = game:GetService("HttpService"):JSONDecode(
+                    http.request({Url="https://discord.com/api/v10/channels/" .. AutoCollect.StockChannel .. "/messages?limit=1", Method="GET", Headers={["Authorization"]="Bot "..AutoCollect.BotToken}}).Body
+                )
+            until #check == 0 or tick() - b >= 5
+            b = tick()
+            if #check == 0 then
+                break
+            end
+            task.wait()
+        until nil
         local Body = {
         content = "<t:" .. os.time() .. ":f> Stock List.",
         embeds = {{
