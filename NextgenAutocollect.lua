@@ -717,7 +717,7 @@ local function GetBQStatsString(File, Name)
                 return
             end
             if not (NumWaxes == 0 and Potential >= 4.5) then
-                if BeeAbilityPollen and tonumber(BeeAbilityPollen) < 4 then
+                if not BeeAbilityPollen or tonumber(BeeAbilityPollen) < 4 then
                     return
                 end
             end
@@ -726,7 +726,7 @@ local function GetBQStatsString(File, Name)
         elseif Name == "Toy Horn" then
             local BeeAbilityPollen = Strings.Hivebonus:match("%+(%d+)%% Bee Ability Pollen")
             if not (NumWaxes == 0 and Potential >= 4.5) then
-                if BeeAbilityPollen and tonumber(BeeAbilityPollen) < 2 then
+                if not BeeAbilityPollen or tonumber(BeeAbilityPollen) < 2 then
                     return
                 end
             end
