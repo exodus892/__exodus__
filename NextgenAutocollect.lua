@@ -89,7 +89,7 @@ game:GetService("GuiService").ErrorMessageChanged:Connect(function(message)
     end
 end)
 
-queue_on_teleport("_G.BotToken = \"" .. AutoCollect.BotToken .. '\"; loadstring(game:HttpGet("https://raw.githubusercontent.com/exodus892/__exodus__/refs/heads/main/NextgenAutocollect.lua"))()')
+queue_on_teleport((_G.loadatlasautojoin and "_G.loadatlasautojoin=true; " or "") .. "_G.BotToken = \"" .. AutoCollect.BotToken .. '\"; loadstring(game:HttpGet("https://raw.githubusercontent.com/exodus892/__exodus__/refs/heads/main/NextgenAutocollect.lua"))()')
 
 LocalPlayer.Idled:Connect(function()
     game:GetService("VirtualUser"):CaptureController()
@@ -1027,6 +1027,13 @@ PublishMessage(AutoCollect.StockChannel, nil, Body)
 --end)
 
 warn("All that gobblydook is done")
+
+
+task.spawn(function()
+    if _G.loadatlasautojoin then
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/Chris12089/atlasbss/refs/heads/main/script.lua"))()
+    end    
+end)
 
 while task.wait(3) do
     Scans = Scans + 1
