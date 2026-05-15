@@ -240,11 +240,10 @@ local function getMsgTime(msg)
 end
 
 local function Scan(Tp, Json)
-    local YeahComplete = false
     local Messages = GetMessages()
     if Messages then
         for i, msg in pairs(Messages) do
-            pcall(function()
+            local Suc,Res=pcall(function()
                 local msgTime = getMsgTime(msg)
                 if os.time() - msgTime <= 1800 then
                     local content = msg.content
@@ -286,14 +285,18 @@ local function Scan(Tp, Json)
                         until nil
                     elseif Tp == false then
                         if AJdata.completed and Json.jobid == game.JobId and Victim and tonumber(Json.userid) == Victim.UserId then
-                            YeahComplete = true
+                            return true
                         end
                     end
                 end
             end)
+            if Suc and type(Res) == "boolean" then
+                return Res
+            else
+                return false
+            end
         end
     end
-    return YeahComplete
 end
 
 local function FindVictim(Json)
