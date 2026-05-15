@@ -793,7 +793,7 @@ local function GetStickers()
 end
 
 redeemticketvoucher = function()
-    PublishMessage(AutoCollect.StockChannel, "<:Ticket_Voucher:1504592174614970488> Attempting to redeem ticket voucher")
+    PublishMessage(AutoCollect.BotInfoChannel, "<:Ticket_Voucher:1504592174614970488> Attempting to redeem ticket voucher")
     for i, v in pairs(GetStickers()) do
         pcall(function()
             local name = v.F:GetTypeDef().Name
@@ -815,7 +815,7 @@ OldPush = hookfunction(AlertBoxes.Push, newcclosure(function(self, Text, ...)
     if Text:lower():find("100 tickets") then
         task.spawn(function()
             task.wait(5)
-            PublishMessage(AutoCollect.StockChannel, "<:Ticket_Voucher:1504592174614970488> Redeemed ticket voucher. Next: <t:" .. (os.time() + NextTicketVoucher()) .. ":R>")
+            PublishMessage(AutoCollect.BotInfoChannel, "<:Ticket_Voucher:1504592174614970488> Redeemed ticket voucher. Next: <t:" .. (math.floor(os.time() + NextTicketVoucher())) .. ":R>")
         end)
     end
     return OldPush(self, Text, ...)
