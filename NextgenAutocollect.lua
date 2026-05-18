@@ -785,7 +785,7 @@ local function GetStickers()
 end
 
 redeemticketvoucher = function()
-    PublishMessage(AutoCollect.BotInfoChannel, "<:Ticket_Voucher:1504592174614970488> Attempting to redeem ticket voucher")
+    --PublishMessage(AutoCollect.BotInfoChannel, "<:Ticket_Voucher:1504592174614970488> Attempting to redeem ticket voucher")
     for i, v in pairs(GetStickers()) do
         pcall(function()
             local name = v.F:GetTypeDef().Name
@@ -804,7 +804,7 @@ end
 local OldPush
 local AlertBoxes = require(await(ReplicatedStorage, "AlertBoxes"))
 OldPush = hookfunction(AlertBoxes.Push, newcclosure(function(self, Text, ...)
-    if Text:lower():find("100 tickets") then
+    if Text == "+100 Tickets (from Ticket Voucher)" then
         task.spawn(function()
             task.wait(5)
             PublishMessage(AutoCollect.BotInfoChannel, "<:Ticket_Voucher:1504592174614970488> Redeemed ticket voucher. Next: <t:" .. (math.floor(os.time() + NextTicketVoucher())) .. ":R>")
