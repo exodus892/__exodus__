@@ -557,8 +557,14 @@ local function GetBQStatsString(File, Name)
                 return
             end
             if BeeAbilityPollen == nil and TokenLink == nil then
-                if tonumber(AbilityTokenLifespan) < 5 then
+                if tonumber(AbilityTokenLifespan) < 7 then
                     return
+                end
+            end
+            if BeeAbilityPollen and tonumber(BeeAbilityPollen) < 3 then
+                if TokenLink == nil then return end
+                if not TokenLink then
+                    if not AbilityTokenLifespan or tonumber(AbilityTokenLifespan) < 7 then return end
                 end
             end
             Concat(TokenLink and "Ability: Token Link", BeeAbilityPollen and BeeAbilityPollen .. "% Bee Ability Pollen", AbilityTokenLifespan and AbilityTokenLifespan .. "% Ability Token Lifespan")
@@ -694,6 +700,11 @@ local function GetBQStatsString(File, Name)
             if BondFromTreats == nil and Capacity == nil and BabyLove == nil then
                 return
             end
+            if BondFromTreats == nil and BabyLove == nil then
+                if tonumber(Capacity) < 4 then
+                    return
+                end
+            end
             Concat(BondFromTreats and BondFromTreats .. "% Bond From Treats", Capacity and Capacity .. "% Capacity", BabyLove and "Ability: Baby Love")
 
         elseif Name == "Snow Tiara" then
@@ -717,11 +728,11 @@ local function GetBQStatsString(File, Name)
 
         elseif Name == "Toy Horn" then
             local BeeAbilityPollen = Strings.Hivebonus:match("%+(%d+)%% Bee Ability Pollen")
-            if not (NumWaxes == 0 and Potential >= 4.5) then
+            --if not (NumWaxes == 0 and Potential >= 4.5) then
                 if not BeeAbilityPollen or tonumber(BeeAbilityPollen) < 2 then
                     return
                 end
-            end
+            --end
             Concat(BeeAbilityPollen and BeeAbilityPollen .. "% Bee Ability Pollen")
         else
             return
