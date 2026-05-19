@@ -981,34 +981,38 @@ local function c()
         }
     })
     print("r", res.Body)
-    local msgs = game:GetService("HttpService"):JSONDecode(res.Body)
-    local ids = {}
-    for _,m in ipairs(msgs) do
-        print(m.id)
-        table.insert(ids, m.id)
-    end
-    print(#ids, "A")
-    if #ids == 1 then
-        print("T", SafeRequest({
-            Url = "https://discord.com/api/v9/channels/" .. AutoCollect.StockChannel .. "/messages/" .. ids[1],
-            Method = "DELETE",
-            Headers = {
-                Authorization = "Bot " .. AutoCollect.BotToken,
-                ["Content-Type"] = "application/json"
-            },
-        }))
-    else
-        print("B", SafeRequest({
-            Url="https://discord.com/api/v10/channels/" .. AutoCollect.StockChannel .. "/messages/bulk-delete",
-            Method = "POST",
-            Headers = {
-                Authorization = "Bot " .. AutoCollect.BotToken,
-                ["Content-Type"] = "application/json"
-            },
-            Body = game:GetService("HttpService"):JSONEncode({
-                messages=ids
-            })
-        }).StatusCode)
+    local suc, msgs = pcall(function()
+        return game:GetService("HttpService"):JSONDecode(res.Body)
+    end)
+    if suc and type(msgs) == "table" then
+        local ids = {}
+        for _,m in ipairs(msgs) do
+            print(m.id)
+            table.insert(ids, m.id)
+        end
+        print(#ids, "A")
+        if #ids == 1 then
+            print("T", SafeRequest({
+                Url = "https://discord.com/api/v9/channels/" .. AutoCollect.StockChannel .. "/messages/" .. ids[1],
+                Method = "DELETE",
+                Headers = {
+                    Authorization = "Bot " .. AutoCollect.BotToken,
+                    ["Content-Type"] = "application/json"
+                },
+            }))
+        else
+            print("B", SafeRequest({
+                Url="https://discord.com/api/v10/channels/" .. AutoCollect.StockChannel .. "/messages/bulk-delete",
+                Method = "POST",
+                Headers = {
+                    Authorization = "Bot " .. AutoCollect.BotToken,
+                    ["Content-Type"] = "application/json"
+                },
+                Body = game:GetService("HttpService"):JSONEncode({
+                    messages=ids
+                })
+            }).StatusCode)
+        end
     end
 end
 local b = tick()
