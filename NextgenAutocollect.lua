@@ -1021,14 +1021,19 @@ while task.wait() do
     c()
     repeat
         wait(1)
-        check = game:GetService("HttpService"):JSONDecode(SafeRequest({
-            Url = "https://discord.com/api/v10/channels/" .. AutoCollect.StockChannel .. "/messages?limit=100",
-            Method = "GET",
-            Headers = {
-                Authorization = "Bot " .. AutoCollect.BotToken,
-                ["content-type"] = "application/json"
-            }
-        }).Body)
+        local suc, msgs = pcall(function()
+            return game:GetService("HttpService"):JSONDecode(SafeRequest({
+                Url = "https://discord.com/api/v10/channels/" .. AutoCollect.StockChannel .. "/messages?limit=100",
+                Method = "GET",
+                Headers = {
+                    Authorization = "Bot " .. AutoCollect.BotToken,
+                    ["content-type"] = "application/json"
+                }
+            }).Body)
+        end)
+        if suc and type(msgs) == "table" then
+            check = msgs
+        end
         print("C", check)
     until #check == 0 or tick() - b >= 5
     b = tick()
