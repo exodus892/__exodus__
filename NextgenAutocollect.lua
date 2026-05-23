@@ -1,3 +1,21 @@
+local SafeGetCode = [[
+    function(Url)
+        local Result
+        while true do
+            local Success, Reason, HResult = pcall(function()
+                return nil, game:HttpGet(Url)
+            end)
+            if Success and HResult then
+                Result = HResult
+            end
+            if Result then break end
+            if not Success then warn("SafeGet: " .. tostring(Reason)) end
+            task.wait(0.5)
+        end
+        return Result
+    end
+]]
+local SafeGet = loadstring("return " .. SafeGetCode)()
 local AutoCollect = {
     GuildID = "1488497480185417779";
     ChannelID = "1503764937087127773";
@@ -40,7 +58,7 @@ end
 local LocalPlayer = game:GetService("Players").LocalPlayer
 
 local function NextTicketVoucher()
-    return 79200 - (os.time() - game.ReplicatedStorage.Events.RetrievePlayerStats:InvokeServer().SystemTimes["RedeemedTicket Voucher"])
+    return 86400 - (os.time() - game.ReplicatedStorage.Events.RetrievePlayerStats:InvokeServer().SystemTimes["RedeemedTicket Voucher"])
 end
 
 game:GetService("RunService").RenderStepped:Connect(function()
@@ -53,7 +71,7 @@ end)
 
 local function serverhop()
     local servers = {}
-    local req = game:HttpGet("https://games.roblox.com/v1/games/" .. game.PlaceId .. "/servers/Public?sortOrder=Asc&limit=100&excludeFullGames=true")
+    local req = SafeGet("https://games.roblox.com/v1/games/" .. game.PlaceId .. "/servers/Public?sortOrder=Asc&limit=100&excludeFullGames=true")
     local body = game:GetService("HttpService"):JSONDecode(req)
 
     if body and body.data then
@@ -89,7 +107,7 @@ game:GetService("GuiService").ErrorMessageChanged:Connect(function(message)
     end
 end)
 
-queue_on_teleport((_G.loadatlasautojoin and "_G.loadatlasautojoin=true; " or "") .. "_G.BotToken = \"" .. AutoCollect.BotToken .. '\"; loadstring(game:HttpGet("https://raw.githubusercontent.com/exodus892/__exodus__/refs/heads/main/NextgenAutocollect.lua"))()')
+queue_on_teleport((_G.loadatlasautojoin and "_G.loadatlasautojoin=true; " or "") .. "_G.BotToken = \"" .. AutoCollect.BotToken .. '\"; local safeGet=' .. SafeGetCode .. '; loadstring(safeGet("https://raw.githubusercontent.com/exodus892/__exodus__/refs/heads/main/NextgenAutocollect.lua"))()')
 
 LocalPlayer.Idled:Connect(function()
     game:GetService("VirtualUser"):CaptureController()
@@ -302,7 +320,7 @@ end
 local function FindVictim(Json)
     if not Json or game.JobId ~= Json.jobid then
         if game.JobId ~= Json.jobid then
-            PublishMessage(AutoCollect.BotInfoChannel, "(v7.1) Auto-Join started running on " .. LocalPlayer.Name)
+            PublishMessage(AutoCollect.BotInfoChannel, "(v7.2) Auto-Join started running on " .. LocalPlayer.Name)
         end
         return
     end
@@ -409,7 +427,7 @@ if isfile("ExodusAutojoin") then
     end
 else
     warn("No auto-join file")
-    PublishMessage(AutoCollect.BotInfoChannel, "(v7.1) Auto-Join started running on " .. LocalPlayer.Name)
+    PublishMessage(AutoCollect.BotInfoChannel, "(v7.2) Auto-Join started running on " .. LocalPlayer.Name)
     IsStealing = false
 end
 
@@ -1060,7 +1078,7 @@ if game.PlaceId ~= 1537690962 then
 end
 task.spawn(function()
     if _G.loadatlasautojoin then
-        loadstring(game:HttpGet("https://raw.githubusercontent.com/Chris12089/atlasbss/refs/heads/main/script.lua"))()
+        loadstring(SafeGet("https://raw.githubusercontent.com/Chris12089/atlasbss/refs/heads/main/script.lua"))()
     end    
 end)
 
