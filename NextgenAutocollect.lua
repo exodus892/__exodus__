@@ -40,7 +40,7 @@ end
 local LocalPlayer = game:GetService("Players").LocalPlayer
 
 local function NextTicketVoucher()
-    return 86400 - (os.time() - game.ReplicatedStorage.Events.RetrievePlayerStats:InvokeServer().SystemTimes["RedeemedTicket Voucher"])
+    return 79200 - (os.time() - game.ReplicatedStorage.Events.RetrievePlayerStats:InvokeServer().SystemTimes["RedeemedTicket Voucher"])
 end
 
 game:GetService("RunService").RenderStepped:Connect(function()
