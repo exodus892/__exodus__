@@ -1,5 +1,4 @@
-local SafeGetCode = [[
-    function(Url)
+local SafeGetCode = [[function(Url)
         local Result
         while true do
             local Success, Reason, HResult = pcall(function()
@@ -13,8 +12,7 @@ local SafeGetCode = [[
             task.wait(0.5)
         end
         return Result
-    end
-]]
+    end]]
 local SafeGet = loadstring("return " .. SafeGetCode)()
 local AutoCollect = {
     GuildID = "1488497480185417779";
